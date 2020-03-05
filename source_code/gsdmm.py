@@ -1,9 +1,11 @@
 import numpy as np
 from collections import Counter
+from tqdm import tqdm
+import preprocess
 
 
 class GSDMM:
-    def __init__(self, documents, num_topics, vocab_size, alpha, beta):
+    def __init__(self, documents, vocab_size, num_topics=50, alpha=0.1, beta=0.1):
         self.documents = documents
         self.num_topics = num_topics
         self.vocab_size = vocab_size
@@ -44,7 +46,7 @@ class GSDMM:
                 self.word_count_num_topics_by_vocab_size[topic_index, word_id] += 1
 
     def topic_reassignment(self):  # per each iteration
-        for doc_index, each_doc in enumerate(self.documents):
+        for doc_index, each_doc in enumerate(tqdm(self.documents)):
             # record current topic assignment from the initialization step
             # exclude doc and word frequencies for this topic
             current_topic_index = self.topic_assignment_num_docs_by_num_topics[doc_index, :].argmax()
@@ -107,6 +109,7 @@ class GSDMM:
 
         # calculating probability fior each topic_index in natural log space
         ln_left_denominator = np.log(self.num_docs - 1 + self.num_topics * self.alpha)
+        print(ln_left_denominator)
         for topic_index in range(self.num_topics):
             ln_left_numerator = np.log(self.num_docs_per_topic[topic_index] + self.alpha)
             ln_right_numerator = np.zeros((self.num_topics, self.vocab_size))
@@ -135,7 +138,16 @@ class GSDMM:
 
 
 def main():
-    pass
+    toy_filename = '../data/toy_long.txt'
+    toy_corpus = preprocess.load_corpus(toy_filename)
+
+    vocab = preprocess.Vocabulary()
+    docs = [vocab.doc_to_ids(doc) for doc in toy_corpus]
+
+    gsdmm = GSDMM(docs, vocab.size())
+
+    for iteration in range(15):
+        gsdmm.topic_reassignment()
 
 
 if __name__ == '__main__':
