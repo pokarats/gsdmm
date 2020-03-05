@@ -45,7 +45,8 @@ class GSDMM:
             for word_id in each_doc:
                 self.word_count_num_topics_by_vocab_size[topic_index, word_id] += 1
 
-    def topic_reassignment(self):  # per each iteration
+    def topic_reassignment(self):
+        # GSDMM algorithm in each iteration
         for doc_index, each_doc in enumerate(tqdm(self.documents)):
             # record current topic assignment from the initialization step
             # exclude doc and word frequencies for this topic
@@ -108,7 +109,7 @@ class GSDMM:
         doc_word_freq = Counter(doc)
         num_words_in_doc = len(doc)
 
-        # calculating probability fior each topic_index in natural log space
+        # calculating probability for each topic_index in natural log space
         ln_left_denominator = np.log(self.num_docs - 1 + self.num_topics * self.alpha)
         for topic_index in range(self.num_topics):
             ln_left_numerator = np.log(self.num_docs_per_topic[topic_index] + self.alpha)
@@ -126,7 +127,6 @@ class GSDMM:
 
         # converting log probabilities back to linear scale
         # use 128-bit float to avoid NaN overflow
-
         prob = np.exp(ln_prob, dtype=np.float128)
 
         # normalize probabilities
@@ -138,9 +138,38 @@ class GSDMM:
         # return as float64 to be compatible with np.random.multinomial
         return normalized_prob.astype(np.float64)
 
+    def iterate_topic_reassignment(self, iterations=15):
+        for iteration in range(iterations):
+            self.topic_reassignment()
+
+        return None
+
+    def document_best_topic_label(self):
+        for doc_index in range(self.num_docs):
+            topic_label = self.topic_assignment_num_docs_by_num_topics[doc_index, :].argmax()
+            print(f'Doc no: {doc_index} is assigned topic label: {topic_label}')
+
+        return None
+
+
+def most_populated_clusters(gsdmm, vocab):
+    highest_num_docs = list(np.sort(gsdmm.num_docs_per_topic)[::-1])[:10]
+    most_docs_topics = list(np.argsort(gsdmm.num_docs_per_topic)[::-1])[:10]
+    print(f'Number of documents per topic for most populated clusters: {highest_num_docs}')
+    print(f'Topic labels with highest numbers of documents: {most_docs_topics}')
+
+    for topic in most_docs_topics:
+        most_freq_words_ids = list(np.argsort(gsdmm.word_count_num_topics_by_vocab_size[topic, :])[::-1])[:5]
+        highest_word_freq = list(np.sort(gsdmm.word_count_num_topics_by_vocab_size[topic, :])[::-1])[:5]
+        most_frequent_words = [(vocab.id_to_word[word_id], freq) for word_id, freq in zip(most_freq_words_ids,
+                                                                                          highest_word_freq)]
+        print(f'Topic label: {topic}\tMost frequent words: {most_frequent_words}')
+
+    return None
+
 
 def main():
-    toy_filename = '../data/toy_long.txt'
+    toy_filename = '../data/toy.txt'
     toy_corpus = preprocess.load_corpus(toy_filename)
 
     vocab = preprocess.Vocabulary()
@@ -148,8 +177,10 @@ def main():
 
     gsdmm = GSDMM(docs, vocab.size())
 
-    for iteration in range(15):
-        gsdmm.topic_reassignment()
+    gsdmm.iterate_topic_reassignment()
+    gsdmm.document_best_topic_label()
+
+    most_populated_clusters(gsdmm, vocab)
 
 
 if __name__ == '__main__':
