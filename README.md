@@ -10,3 +10,7 @@ To Do's
 - Write function to calculate the posterior probability for sampling new topic
 - Show words in documents of the final clusters
 - Show results/evaluate per metrics in the Y and W paper
+- figure out which eval metrics is possible without labeled data
+- with label data, how to match up the labels to run evals: 
+- if time allows, visualization with pyLDA??? 
+- keep track of average doc len, num of non-0 clusters per iteration

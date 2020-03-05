@@ -152,15 +152,15 @@ class GSDMM:
         return None
 
 
-def most_populated_clusters(gsdmm, vocab):
-    highest_num_docs = list(np.sort(gsdmm.num_docs_per_topic)[::-1])[:10]
-    most_docs_topics = list(np.argsort(gsdmm.num_docs_per_topic)[::-1])[:10]
+def most_populated_clusters(gsdmm, vocab, num_wanted_topics=5, num_wanted_words=5):
+    highest_num_docs = np.sort(gsdmm.num_docs_per_topic)[::-1][:num_wanted_topics]
+    most_docs_topics = np.argsort(gsdmm.num_docs_per_topic)[::-1][:num_wanted_topics]
     print(f'Number of documents per topic for most populated clusters: {highest_num_docs}')
     print(f'Topic labels with highest numbers of documents: {most_docs_topics}')
 
     for topic in most_docs_topics:
-        most_freq_words_ids = list(np.argsort(gsdmm.word_count_num_topics_by_vocab_size[topic, :])[::-1])[:5]
-        highest_word_freq = list(np.sort(gsdmm.word_count_num_topics_by_vocab_size[topic, :])[::-1])[:5]
+        most_freq_words_ids = np.argsort(gsdmm.word_count_num_topics_by_vocab_size[topic, :])[::-1][:num_wanted_words]
+        highest_word_freq = np.sort(gsdmm.word_count_num_topics_by_vocab_size[topic, :])[::-1][:num_wanted_words]
         most_frequent_words = [(vocab.id_to_word[word_id], freq) for word_id, freq in zip(most_freq_words_ids,
                                                                                           highest_word_freq)]
         print(f'Topic label: {topic}\tMost frequent words: {most_frequent_words}')
@@ -169,7 +169,7 @@ def most_populated_clusters(gsdmm, vocab):
 
 
 def main():
-    toy_filename = '../data/toy.txt'
+    toy_filename = '../data/toy_long.txt'
     toy_corpus = preprocess.load_corpus(toy_filename)
 
     vocab = preprocess.Vocabulary()
