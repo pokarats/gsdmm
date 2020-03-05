@@ -52,12 +52,23 @@ def lemmatize(word):
     return w
 
 
+def is_too_short(word, threshold):
+    return len(word) < threshold
+
+
+def is_too_long(word, threshold):
+    return len(word) > threshold
+
+
 class Vocabulary:
-    def __init__(self, exclude_stopwords=True):
+    def __init__(self, exclude_stopwords=True, exclude_short_long=True, short_word=2, long_word=15):
         self.id_to_word = {}
         self.word_to_id = {}
         self.id_to_doc_frequency = {}  # maps word_id to number of documents the word(id) appears in
         self.exclude_stopwords = exclude_stopwords
+        self.exclude_short_long = exclude_short_long
+        self.too_short = short_word
+        self.too_long = long_word
 
     def term_to_id(self, word):
         """
@@ -70,6 +81,9 @@ class Vocabulary:
             return None
         if self.exclude_stopwords and is_stopword(term):
             return None
+        if self.exclude_short_long:
+            if is_too_long(term, self.too_long) or is_too_short(term, self.too_short):
+                return None
         if term not in self.word_to_id.keys():
             vocab_id = len(self.id_to_word)
             self.word_to_id[term] = vocab_id
@@ -142,9 +156,11 @@ class Vocabulary:
 
 def main():
     toy = load_corpus('../data/toy.txt')
+    toy_long = load_corpus('../data/toy_long.txt')
     print(toy)
+    print(toy_long)
 
-    # process corpus
+    # process corpora
     vocab = Vocabulary()
     toy_docs = [vocab.doc_to_ids(doc) for doc in toy]
     print(toy_docs)
@@ -152,6 +168,13 @@ def main():
 
     toy_docs = vocab.cut_low_freq(toy_docs)
     print(toy_docs)
+
+    vocab_long = Vocabulary()
+    toy_long_docs = [vocab_long.doc_to_ids(doc) for doc in toy_long]
+    print(toy_long_docs)
+
+    toy_long_docs = vocab_long.cut_low_freq(toy_long_docs)
+    print(toy_long_docs)
 
 
 if __name__ == '__main__':
