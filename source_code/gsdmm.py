@@ -58,6 +58,7 @@ class GSDMM:
 
             # re-sample for a new topic assignment based on Equation 4 in Yin and Wang
             prob_topic_assigned_to_doc = self.calc_normalized_topic_sampling_prob(each_doc)
+            # print(prob_topic_assigned_to_doc)
             new_topic = np.random.multinomial(1, prob_topic_assigned_to_doc)
             new_topic_index = new_topic.argmax()
 
@@ -109,11 +110,10 @@ class GSDMM:
 
         # calculating probability fior each topic_index in natural log space
         ln_left_denominator = np.log(self.num_docs - 1 + self.num_topics * self.alpha)
-        print(ln_left_denominator)
         for topic_index in range(self.num_topics):
             ln_left_numerator = np.log(self.num_docs_per_topic[topic_index] + self.alpha)
-            ln_right_numerator = np.zeros((self.num_topics, self.vocab_size))
-            ln_right_denominator = np.zeros(self.num_topics)
+            ln_right_numerator = 0.0
+            ln_right_denominator = 0.0
             for word_id in doc:
                 word_freq = doc_word_freq[word_id]
                 for j in range(1, word_freq + 1):
@@ -122,11 +122,12 @@ class GSDMM:
             for i in range(1, num_words_in_doc + 1):
                 ln_right_denominator += np.log(self.num_words_per_topic[topic_index] + self.vocab_size * self.beta + i
                                                - 1)
-
             ln_prob[topic_index] = ln_left_numerator + ln_right_numerator - ln_left_denominator - ln_right_denominator
 
         # converting log probabilities back to linear scale
-        prob = np.exp(ln_prob)
+        # use 128-bit float to avoid NaN overflow
+
+        prob = np.exp(ln_prob, dtype=np.float128)
 
         # normalize probabilities
         try:
@@ -134,7 +135,8 @@ class GSDMM:
         except ZeroDivisionError:
             normalized_prob = prob / 1.0
 
-        return normalized_prob
+        # return as float64 to be compatible with np.random.multinomial
+        return normalized_prob.astype(np.float64)
 
 
 def main():
