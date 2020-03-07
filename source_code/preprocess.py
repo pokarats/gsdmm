@@ -8,7 +8,7 @@
 
 import re
 import nltk
-import numpy as np
+
 
 stopwords_list = nltk.corpus.stopwords.words('english')
 recover_list = {'wa': 'was', 'ha': 'has'}

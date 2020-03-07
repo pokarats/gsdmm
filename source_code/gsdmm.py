@@ -2,6 +2,7 @@ import numpy as np
 from collections import Counter
 from tqdm import tqdm
 import preprocess
+import pickle
 
 
 class GSDMM:
@@ -141,45 +142,107 @@ class GSDMM:
 
         return None
 
-    def document_best_topic_label(self):
+    def predict_doc_topic_labels(self):
+        predicted_labels = []
         for doc_index in range(self.num_docs):
             topic_label = self.topic_label_per_doc[doc_index]
+            predicted_labels.append(topic_label)
             # topic_label = self.topic_assignment_num_docs_by_num_topics[doc_index, :].argmax()
             print(f'Doc no: {doc_index} is assigned topic label: {topic_label}')
 
-        return None
+        return predicted_labels
+        # TODO write option to pickle list of predict_labels to file
 
 
-def most_populated_clusters(gsdmm, vocab, num_wanted_topics=5, num_wanted_words=5):
+def predict_most_populated_clusters(gsdmm, vocab, num_wanted_topics=5, num_wanted_words=5):
     highest_num_docs = np.sort(gsdmm.num_docs_per_topic)[::-1][:num_wanted_topics]
     most_docs_topics = np.argsort(gsdmm.num_docs_per_topic)[::-1][:num_wanted_topics]
     print(f'Number of documents per topic for most populated clusters: {highest_num_docs}')
     print(f'Topic labels with highest numbers of documents: {most_docs_topics}')
 
+    most_frequent_words_by_topic = {}
     for topic in most_docs_topics:
         most_freq_words_ids = np.argsort(gsdmm.word_count_num_topics_by_vocab_size[topic, :])[::-1][:num_wanted_words]
         highest_word_freq = np.sort(gsdmm.word_count_num_topics_by_vocab_size[topic, :])[::-1][:num_wanted_words]
         most_frequent_words = [(vocab.id_to_word[word_id], freq) for word_id, freq in zip(most_freq_words_ids,
                                                                                           highest_word_freq)]
+        most_frequent_words_by_topic[topic] = most_frequent_words
         print(f'Topic label: {topic}\tMost frequent words: {most_frequent_words}')
 
-    return None
+    return most_frequent_words_by_topic
+    # TODO write option to pickle dict to file
+
+
+def true_most_populated_clusters(true_clusters, documents, vocab, num_wanted_topics=20, num_wanted_words=5):
+    # true_clusters is a list of list of docs in a topic, len(list of docs) == num_docs_per_topic
+    num_topics = len(true_clusters)
+    cluster_size = []
+    for cluster in true_clusters:
+        cluster_size.append(len(cluster))
+
+    num_docs_per_topic = cluster_size[:num_wanted_topics]
+    print(f'Number of documents per topic in true clusters: {num_docs_per_topic}')
+
+    word_count_per_topic = np.zeros(num_topics, dtype=np.uintc)
+    word_count_num_topics_by_vocab_size = np.zeros((num_topics, vocab.size()), dtype=np.uintc)
+    for topic_index, each_topic in enumerate(true_clusters):
+        for each_doc_id in each_topic:
+            word_count_per_topic[topic_index] += len(documents[each_doc_id])
+            for word_id in documents[each_doc_id]:
+                word_count_num_topics_by_vocab_size[topic_index, word_id] += 1
+
+    most_frequent_words_by_topic = {}
+    for topic_index in range(num_topics):
+        most_freq_words_ids = np.argsort(word_count_num_topics_by_vocab_size[topic_index, :])[::-1][:num_wanted_words]
+        highest_word_freq = np.sort(word_count_num_topics_by_vocab_size[topic_index, :])[::-1][:num_wanted_words]
+        most_frequent_words = [(vocab.id_to_word[word_id], freq) for word_id, freq in zip(most_freq_words_ids,
+                                                                                          highest_word_freq)]
+        most_frequent_words_by_topic[topic_index] = most_frequent_words
+        print(f'True topic label: {topic_index}\tMost frequent words: {most_frequent_words}')
+
+    return most_frequent_words_by_topic
+    # TODO write option to pickle the most_frequent_words_by_topic dict to file
 
 
 def main():
-    toy_filename = '../data/toy_long.txt'
+    toy_filename = '../data/toy.txt'
+    sofl_filename = '../data/title_StackOverflow.txt'
     toy_corpus = preprocess.load_corpus(toy_filename)
+    stack_overflw_corpus = preprocess.load_corpus(sofl_filename)
+
+    toy_vocab = preprocess.Vocabulary()
+    toy_docs = [toy_vocab.doc_to_ids(doc) for doc in toy_corpus]
 
     vocab = preprocess.Vocabulary()
-    docs = [vocab.doc_to_ids(doc) for doc in toy_corpus]
+    stack_overflow_docs = [vocab.doc_to_ids(doc) for doc in stack_overflw_corpus]
 
-    gsdmm = GSDMM(docs, vocab.size())
 
+    gsdmm_toy = GSDMM(toy_docs, toy_vocab.size())
+
+    gsdmm_toy.iterate_topic_reassignment()
+    toy_predicted_labels = gsdmm_toy.predict_doc_topic_labels()
+
+    # pickle predicted labels
+    pickled_predicted_labels = '../data/predicted_labels.pickle'
+    with open(pickled_predicted_labels, 'wb') as w_file:
+        pickle.dump(toy_predicted_labels, w_file)
+
+    with open(pickled_predicted_labels, 'rb') as saved_pickle:
+        loaded_predicted_labels = pickle.load(saved_pickle)
+
+    assert toy_predicted_labels == loaded_predicted_labels
+    predicted_most_freq_words_by_topic = predict_most_populated_clusters(gsdmm_toy, toy_vocab)
+
+    # true labels and clusters
+    labels = preprocess.load_labels('../data/label_StackOverflow.txt')
+    true_clusters = preprocess.make_topic_clusters(labels)
+    true_most_frequent_words_by_topic = true_most_populated_clusters(true_clusters, stack_overflow_docs, vocab)
+
+    #full stack_overflow run
+    gsdmm = GSDMM(stack_overflow_docs, vocab.size())
     gsdmm.iterate_topic_reassignment()
-    gsdmm.document_best_topic_label()
-
-    most_populated_clusters(gsdmm, vocab)
-
+    predicted_labels = gsdmm.predict_doc_topic_labels()
+    
 
 if __name__ == '__main__':
     main()
