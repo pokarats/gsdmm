@@ -148,13 +148,13 @@ class GSDMM:
             topic_label = self.topic_label_per_doc[doc_index]
             predicted_labels.append(topic_label)
             # topic_label = self.topic_assignment_num_docs_by_num_topics[doc_index, :].argmax()
-            print(f'Doc no: {doc_index} is assigned topic label: {topic_label}')
+            # print(f'Doc no: {doc_index} is assigned topic label: {topic_label}')
 
         return predicted_labels
         # TODO write option to pickle list of predict_labels to file
 
 
-def predict_most_populated_clusters(gsdmm, vocab, num_wanted_topics=5, num_wanted_words=5):
+def predict_most_populated_clusters(gsdmm, vocab, num_wanted_topics=20, num_wanted_words=5):
     highest_num_docs = np.sort(gsdmm.num_docs_per_topic)[::-1][:num_wanted_topics]
     most_docs_topics = np.argsort(gsdmm.num_docs_per_topic)[::-1][:num_wanted_topics]
     print(f'Number of documents per topic for most populated clusters: {highest_num_docs}')
@@ -221,17 +221,7 @@ def main():
 
     gsdmm_toy.iterate_topic_reassignment()
     toy_predicted_labels = gsdmm_toy.predict_doc_topic_labels()
-
-    # pickle predicted labels
-    pickled_predicted_labels = '../data/predicted_labels.pickle'
-    with open(pickled_predicted_labels, 'wb') as w_file:
-        pickle.dump(toy_predicted_labels, w_file)
-
-    with open(pickled_predicted_labels, 'rb') as saved_pickle:
-        loaded_predicted_labels = pickle.load(saved_pickle)
-
-    assert toy_predicted_labels == loaded_predicted_labels
-    predicted_most_freq_words_by_topic = predict_most_populated_clusters(gsdmm_toy, toy_vocab)
+    toy_predicted_most_freq_words_by_topic = predict_most_populated_clusters(gsdmm_toy, toy_vocab)
 
     # true labels and clusters
     labels = preprocess.load_labels('../data/label_StackOverflow.txt')
@@ -242,6 +232,17 @@ def main():
     gsdmm = GSDMM(stack_overflow_docs, vocab.size())
     gsdmm.iterate_topic_reassignment()
     predicted_labels = gsdmm.predict_doc_topic_labels()
+
+    # pickle predicted labels
+    pickled_predicted_labels = '../data/predicted_labels.pickle'
+    with open(pickled_predicted_labels, 'wb') as w_file:
+        pickle.dump(predicted_labels, w_file)
+
+    with open(pickled_predicted_labels, 'rb') as saved_pickle:
+        loaded_predicted_labels = pickle.load(saved_pickle)
+
+    assert predicted_labels == loaded_predicted_labels
+    predicted_most_freq_words_by_topic = predict_most_populated_clusters(gsdmm, vocab)
 
 
 if __name__ == '__main__':
