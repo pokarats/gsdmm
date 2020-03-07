@@ -15,10 +15,9 @@ class GSDMM:
 
         self.num_docs_per_topic = np.zeros(num_topics, dtype=np.uintc)
         self.num_words_per_topic = np.zeros(num_topics, dtype=np.uintc)
+        self.topic_label_per_doc = np.zeros(self.num_docs, dtype=np.uintc)
         self.word_count_num_topics_by_vocab_size = np.zeros((num_topics, vocab_size), dtype=np.uintc)
-        self.topic_assignment_num_docs_by_num_topics = np.zeros((self.num_docs, num_topics), dtype=np.uintc)
-        # TODO change topic_assignment_num)docs_by_num_topic to just the shape of num_doc, simply store the topic
-        #  index at the location of doc_index
+        # self.topic_assignment_num_docs_by_num_topics = np.zeros((self.num_docs, num_topics), dtype=np.uintc)
 
         """
         Initialization step: topic assignment
@@ -28,29 +27,26 @@ class GSDMM:
         Add number of words in the doc to total number of words in the assigned topic
         Increment number of words for the assigned topic for each word in vocab (word frequency distribution by topic)
         
-        topic_assignment array is a 0-filled array of shape num_docs x num_topics
-        The topic_index location where the entry is NOT 0 is the topic label;
-        For the example array below, doc_index 0 is assigned topic label 2 (out of 5 topic labels):
-        array([[0., 0., 1., 0., 0.],
-               [0., 0., 0., 0., 0.],
-               [0., 0., 0., 0., 0.]])
+        np.random.multinomial(1, [(1/num_topics) * num_topics]) returns an array of len(num_topics) where the non-0
+        index location is the randomly sampled choice, i.e. the assigned topic
         """
         for doc_index, each_doc in enumerate(documents):
-            topic = np.random.multinomial(1, (1 / float(num_topics)) * np.ones(num_topics))
-            topic_index = topic.argmax()
+            topic_index = np.random.multinomial(1, (1 / float(num_topics)) * np.ones(num_topics)).argmax()
             num_words_in_doc = len(each_doc)
-            self.topic_assignment_num_docs_by_num_topics[doc_index, :] = topic
+            self.topic_label_per_doc[doc_index] = topic_index
+            # self.topic_assignment_num_docs_by_num_topics[doc_index, :] = topic
             self.num_docs_per_topic[topic_index] += 1
             self.num_words_per_topic[topic_index] += num_words_in_doc
             for word_id in each_doc:
                 self.word_count_num_topics_by_vocab_size[topic_index, word_id] += 1
 
     def topic_reassignment(self):
-        # GSDMM algorithm in each iteration
+        # GSDMM algorithm in one iteration
         for doc_index, each_doc in enumerate(tqdm(self.documents)):
             # record current topic assignment from the initialization step
             # exclude doc and word frequencies for this topic
-            current_topic_index = self.topic_assignment_num_docs_by_num_topics[doc_index, :].argmax()
+            current_topic_index = self.topic_label_per_doc[doc_index]
+            # current_topic_index = self.topic_assignment_num_docs_by_num_topics[doc_index, :].argmax()
             num_words_in_doc = len(each_doc)
             self.num_docs_per_topic[current_topic_index] -= 1
             self.num_words_per_topic[current_topic_index] -= num_words_in_doc
@@ -64,7 +60,8 @@ class GSDMM:
             new_topic_index = new_topic.argmax()
 
             # update doc and word counts based on new topic assignment
-            self.topic_assignment_num_docs_by_num_topics[doc_index, :] = new_topic
+            self.topic_label_per_doc[doc_index] = new_topic_index
+            # self.topic_assignment_num_docs_by_num_topics[doc_index, :] = new_topic
             self.num_docs_per_topic[new_topic_index] += 1
             self.num_words_per_topic[new_topic_index] += num_words_in_doc
             for word_id in each_doc:
@@ -97,8 +94,8 @@ class GSDMM:
         log(left numerator) == log(num_docs_per_topic[topic_index] + alpha)
         log(left denominator) == log(num docs in corpus - 1 + num_topics * alpha)
 
-        log(right numerator) == sum(sum(log(word_count_topics_by_vocab[topic, word_id] + beta + j -1)))
-        log(right denominatory) == sum(log(num_words_per_topic[topic_index] + vocab_size * beta + i - 1))
+        log(right numerator) == sum(sum(log(word_count_topics_by_vocab[topic, word_id] + beta + j - 1)))
+        log(right denominator) == sum(log(num_words_per_topic[topic_index] + vocab_size * beta + i - 1))
 
 
         :param doc: tokenized doc, each word token is an integer representation
@@ -146,7 +143,8 @@ class GSDMM:
 
     def document_best_topic_label(self):
         for doc_index in range(self.num_docs):
-            topic_label = self.topic_assignment_num_docs_by_num_topics[doc_index, :].argmax()
+            topic_label = self.topic_label_per_doc[doc_index]
+            # topic_label = self.topic_assignment_num_docs_by_num_topics[doc_index, :].argmax()
             print(f'Doc no: {doc_index} is assigned topic label: {topic_label}')
 
         return None

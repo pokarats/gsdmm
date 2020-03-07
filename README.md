@@ -14,3 +14,4 @@ To Do's
 - with label data, how to match up the labels to run evals: 
 - if time allows, visualization with pyLDA??? 
 - keep track of average doc len, num of non-0 clusters per iteration
+- pickle file? what to pickle?

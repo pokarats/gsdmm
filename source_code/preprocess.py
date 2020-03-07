@@ -8,6 +8,11 @@
 
 import re
 import nltk
+import numpy as np
+
+stopwords_list = nltk.corpus.stopwords.words('english')
+recover_list = {'wa': 'was', 'ha': 'has'}
+word_lemmatizer = nltk.WordNetLemmatizer()
 
 
 def load_corpus(filename):
@@ -24,11 +29,6 @@ def load_corpus(filename):
             if len(doc) > 0:
                 tokenized_corpus.append(doc)
     return tokenized_corpus
-
-
-stopwords_list = nltk.corpus.stopwords.words('english')
-recover_list = {'wa': 'was', 'ha': 'has'}
-word_lemmatizer = nltk.WordNetLemmatizer()
 
 
 def is_stopword(word):
@@ -58,6 +58,25 @@ def is_too_short(word, threshold):
 
 def is_too_long(word, threshold):
     return len(word) > threshold
+
+
+def load_labels(filename):
+    labels = []
+    with open(filename, 'r') as f:
+        for line in f:
+            # label file has labels from 1 - n, subtract 1 so that labels range from 0 - n - 1 instead for easy indexing
+            labels.append(int(line.strip()) - 1)
+    return labels
+
+
+def make_topic_clusters(topic_labels):
+    num_labels = len(set(topic_labels))
+    topic_clusters = [[] for _ in range(num_labels)]
+
+    for doc_id, label_number in enumerate(topic_labels):
+        topic_clusters[label_number].append(doc_id)
+
+    return topic_clusters
 
 
 class Vocabulary:
@@ -175,6 +194,12 @@ def main():
 
     toy_long_docs = vocab_long.cut_low_freq(toy_long_docs)
     print(toy_long_docs)
+
+    labels = load_labels('../data/label_StackOverflow.txt')
+    print(labels)
+
+    true_clusters = make_topic_clusters(labels)
+    print(true_clusters[2])
 
 
 if __name__ == '__main__':
