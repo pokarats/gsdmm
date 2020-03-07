@@ -242,7 +242,7 @@ def main():
     gsdmm = GSDMM(stack_overflow_docs, vocab.size())
     gsdmm.iterate_topic_reassignment()
     predicted_labels = gsdmm.predict_doc_topic_labels()
-    
+
 
 if __name__ == '__main__':
     main()
