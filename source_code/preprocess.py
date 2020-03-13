@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
-# Preprocessing steps follow what is described in the paper and utilize the code from Shuyi / Cybozu Labs
-
+# Preprocessing steps follow what is described in the Yin and Wang paper and is adpated from the code from
+# (c) 2010-2011 Nakatni Shuyo / Cybozu Labs Inc. / Cybozu Labs
 # This code is available under the MIT License.
-# (c)2010-2011 Nakatani Shuyo / Cybozu Labs Inc.
+
 
 import re
 import nltk
@@ -61,15 +60,26 @@ def is_too_long(word, threshold):
 
 
 def load_labels(filename):
+    """
+
+    :param filename: file containting true topic labels; 1 label per line
+    :return: list of labels
+    """
     labels = []
     with open(filename, 'r') as f:
         for line in f:
-            # label file has labels from 1 - n, subtract 1 so that labels range from 0 - n - 1 instead for easy indexing
+            # label file has labels from 1 to n, subtract 1 so that labels range from 0 to n - 1 instead for
+            # easy indexing
             labels.append(int(line.strip()) - 1)
     return labels
 
 
 def make_topic_clusters(topic_labels):
+    """
+
+    :param topic_labels: list of labels
+    :return: list of lists of doc_id's that belong to each topic_label
+    """
     num_labels = len(set(topic_labels))
     topic_clusters = [[] for _ in range(num_labels)]
 
@@ -80,6 +90,10 @@ def make_topic_clusters(topic_labels):
 
 
 class Vocabulary:
+    """
+    Process corpus into int tokens for each tokenized word getting rid of stopwords and words that are too short or
+    too long
+    """
     def __init__(self, exclude_stopwords=True, exclude_short_long=True, short_word=2, long_word=15):
         self.id_to_word = {}
         self.word_to_id = {}
@@ -155,6 +169,11 @@ class Vocabulary:
         self.id_to_doc_frequency = new_id_to_doc_freq
 
         def convert_word_ids(doc_of_word_ids):
+            """
+
+            :param doc_of_word_ids: list of tokenized words represented as int word_ids
+            :return: list of tokenized words as int tokens that have been updated
+            """
             new_doc = []
             for old_word_id in doc_of_word_ids:
                 if old_word_id in convert_old_id_to_new_id:
@@ -164,16 +183,31 @@ class Vocabulary:
         return [convert_word_ids(doc) for doc in indexized_corpus]
 
     def __getitem__(self, word_id):
+        """
+
+        :param word_id: int representing word token
+        :return: corresponding str word token
+        """
         return self.id_to_word[word_id]
 
     def size(self):
+        """
+
+        :return: vocabulary size; number of unique words
+        """
         return len(self.id_to_word)
 
     def is_id_stopword(self, word_id):
+        """
+
+        :param word_id: int representing word token
+        :return: True/False
+        """
         return self.id_to_word[word_id] in stopwords_list
 
 
 def main():
+    # code below is for testing that this module works as expected
     toy = load_corpus('../data/toy.txt')
     toy_long = load_corpus('../data/toy_long.txt')
     print(toy)

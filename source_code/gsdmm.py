@@ -1,6 +1,8 @@
+import timeit
+
 import numpy as np
 from collections import Counter
-from tqdm import tqdm
+from tqdm import tqdm, trange
 import preprocess
 import pickle
 
@@ -16,7 +18,7 @@ class GSDMM:
 
         self.num_docs_per_topic = np.zeros(num_topics, dtype=np.uintc)
         self.num_words_per_topic = np.zeros(num_topics, dtype=np.uintc)
-        self.topic_label_per_doc = np.zeros(self.num_docs, dtype=np.uintc)
+        self.topic_label_by_doc = np.zeros(self.num_docs, dtype=np.uintc)
         self.word_count_num_topics_by_vocab_size = np.zeros((num_topics, vocab_size), dtype=np.uintc)
         # self.topic_assignment_num_docs_by_num_topics = np.zeros((self.num_docs, num_topics), dtype=np.uintc)
 
@@ -34,41 +36,48 @@ class GSDMM:
         for doc_index, each_doc in enumerate(documents):
             topic_index = np.random.multinomial(1, (1 / float(num_topics)) * np.ones(num_topics)).argmax()
             num_words_in_doc = len(each_doc)
-            self.topic_label_per_doc[doc_index] = topic_index
+            self.topic_label_by_doc[doc_index] = topic_index
             # self.topic_assignment_num_docs_by_num_topics[doc_index, :] = topic
             self.num_docs_per_topic[topic_index] += 1
             self.num_words_per_topic[topic_index] += num_words_in_doc
             for word_id in each_doc:
                 self.word_count_num_topics_by_vocab_size[topic_index, word_id] += 1
 
-    def topic_reassignment(self):
-        # GSDMM algorithm in one iteration
-        for doc_index, each_doc in enumerate(tqdm(self.documents)):
-            # record current topic assignment from the initialization step
-            # exclude doc and word frequencies for this topic
-            current_topic_index = self.topic_label_per_doc[doc_index]
-            # current_topic_index = self.topic_assignment_num_docs_by_num_topics[doc_index, :].argmax()
-            num_words_in_doc = len(each_doc)
-            self.num_docs_per_topic[current_topic_index] -= 1
-            self.num_words_per_topic[current_topic_index] -= num_words_in_doc
-            for word_id in each_doc:
-                self.word_count_num_topics_by_vocab_size[current_topic_index, word_id] -= 1
+    def _count_non_zero_docs_topics(self):
+        return len(self.num_docs_per_topic.nonzero()[0])
 
-            # re-sample for a new topic assignment based on Equation 4 in Yin and Wang
-            prob_topic_assigned_to_doc = self.calc_normalized_topic_sampling_prob(each_doc)
-            # print(prob_topic_assigned_to_doc)
-            new_topic = np.random.multinomial(1, prob_topic_assigned_to_doc)
-            new_topic_index = new_topic.argmax()
+    def gibbs_sampling_topic_reassignment(self, iterations=15):
+        num_non_zero_topic_clusters = []
+        for _ in trange(iterations):
+            # keeping track of number of topics with docs in each iteration
+            num_non_zero_topic_clusters.append(self._count_non_zero_docs_topics())
+            # GSDMM algorithm in one iteration
+            for doc_index, each_doc in enumerate(self.documents):
+                # record current topic assignment from the initialization step
+                # exclude doc and word frequencies for this topic
+                current_topic_index = self.topic_label_by_doc[doc_index]
+                # current_topic_index = self.topic_assignment_num_docs_by_num_topics[doc_index, :].argmax()
+                num_words_in_doc = len(each_doc)
+                self.num_docs_per_topic[current_topic_index] -= 1
+                self.num_words_per_topic[current_topic_index] -= num_words_in_doc
+                for word_id in each_doc:
+                    self.word_count_num_topics_by_vocab_size[current_topic_index, word_id] -= 1
 
-            # update doc and word counts based on new topic assignment
-            self.topic_label_per_doc[doc_index] = new_topic_index
-            # self.topic_assignment_num_docs_by_num_topics[doc_index, :] = new_topic
-            self.num_docs_per_topic[new_topic_index] += 1
-            self.num_words_per_topic[new_topic_index] += num_words_in_doc
-            for word_id in each_doc:
-                self.word_count_num_topics_by_vocab_size[new_topic_index, word_id] += 1
+                # re-sample for a new topic assignment based on Equation 4 in Yin and Wang
+                prob_topic_assigned_to_doc = self.calc_normalized_topic_sampling_prob(each_doc)
+                # print(prob_topic_assigned_to_doc)
+                new_topic = np.random.multinomial(1, prob_topic_assigned_to_doc)
+                new_topic_index = new_topic.argmax()
 
-        return None
+                # update doc and word counts based on new topic assignment
+                self.topic_label_by_doc[doc_index] = new_topic_index
+                # self.topic_assignment_num_docs_by_num_topics[doc_index, :] = new_topic
+                self.num_docs_per_topic[new_topic_index] += 1
+                self.num_words_per_topic[new_topic_index] += num_words_in_doc
+                for word_id in each_doc:
+                    self.word_count_num_topics_by_vocab_size[new_topic_index, word_id] += 1
+
+        return num_non_zero_topic_clusters
 
     def calc_normalized_topic_sampling_prob(self, doc):
         """
@@ -136,22 +145,21 @@ class GSDMM:
         # return as float64 to be compatible with np.random.multinomial
         return normalized_prob.astype(np.float64)
 
-    def iterate_topic_reassignment(self, iterations=15):
-        for iteration in range(iterations):
-            self.topic_reassignment()
-
-        return None
-
     def predict_doc_topic_labels(self):
         predicted_labels = []
         for doc_index in range(self.num_docs):
-            topic_label = self.topic_label_per_doc[doc_index]
+            topic_label = self.topic_label_by_doc[doc_index]
             predicted_labels.append(topic_label)
             # topic_label = self.topic_assignment_num_docs_by_num_topics[doc_index, :].argmax()
             # print(f'Doc no: {doc_index} is assigned topic label: {topic_label}')
 
         return predicted_labels
-        # TODO write option to pickle list of predict_labels to file
+
+
+def make_pickle(filename, obj_to_pickle):
+    with open(filename, 'wb') as w_file:
+        pickle.dump(obj_to_pickle, w_file)
+    return None
 
 
 def predict_most_populated_clusters(gsdmm, vocab, num_wanted_topics=20, num_wanted_words=5):
@@ -216,10 +224,8 @@ def main():
     vocab = preprocess.Vocabulary()
     stack_overflow_docs = [vocab.doc_to_ids(doc) for doc in stack_overflw_corpus]
 
-
     gsdmm_toy = GSDMM(toy_docs, toy_vocab.size())
-
-    gsdmm_toy.iterate_topic_reassignment()
+    num_toy_topic_clusters_by_iterations = gsdmm_toy.gibbs_sampling_topic_reassignment()
     toy_predicted_labels = gsdmm_toy.predict_doc_topic_labels()
     toy_predicted_most_freq_words_by_topic = predict_most_populated_clusters(gsdmm_toy, toy_vocab)
 
@@ -229,20 +235,31 @@ def main():
     true_most_frequent_words_by_topic = true_most_populated_clusters(true_clusters, stack_overflow_docs, vocab)
 
     #full stack_overflow run
-    gsdmm = GSDMM(stack_overflow_docs, vocab.size())
-    gsdmm.iterate_topic_reassignment()
-    predicted_labels = gsdmm.predict_doc_topic_labels()
+    start_timer = timeit.default_timer()
+    stack_gsdmm = GSDMM(stack_overflow_docs, vocab.size())
+    num_stack_topics_by_iter = stack_gsdmm.gibbs_sampling_topic_reassignment()
+    stack_predicted_labels = stack_gsdmm.predict_doc_topic_labels()
+    print(f'number of non-0 topics by iteration: {num_stack_topics_by_iter}')
+    elapsed_time = timeit.default_timer() - start_timer
+    print(f'time to run GSDMM 1: {elapsed_time}')
 
     # pickle predicted labels
-    pickled_predicted_labels = '../data/predicted_labels.pickle'
+    pickled_predicted_labels = '../pickled/predicted_labels1.pickle'
     with open(pickled_predicted_labels, 'wb') as w_file:
-        pickle.dump(predicted_labels, w_file)
+        pickle.dump(stack_predicted_labels, w_file)
 
     with open(pickled_predicted_labels, 'rb') as saved_pickle:
         loaded_predicted_labels = pickle.load(saved_pickle)
 
-    assert predicted_labels == loaded_predicted_labels
-    predicted_most_freq_words_by_topic = predict_most_populated_clusters(gsdmm, vocab)
+    assert stack_predicted_labels == loaded_predicted_labels
+    predicted_most_freq_words_by_topic = predict_most_populated_clusters(stack_gsdmm, vocab)
+
+    #full_stack run2
+    stack2_gsdmm = GSDMM(stack_overflow_docs, vocab.size())
+    num2_stack_topics_by_iter = stack2_gsdmm.gibbs_sampling_topic_reassignment()
+    stack2_predicted_labels = stack2_gsdmm.predict_doc_topic_labels()
+    print(f'number of non-0 topics by iteration run 2: {num2_stack_topics_by_iter}')
+    make_pickle('../pickled/predicted_labels2.pickle', stack2_predicted_labels)
 
 
 if __name__ == '__main__':

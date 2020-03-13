@@ -11,7 +11,6 @@ To Do's
 - ~~Show words in documents of the final clusters~~
 - Show results/evaluate per metrics in the Y and W paper
 - write eval script to tabulate: H, C, NMI, ARI, AMI per Yin and Wang paper
-- if time allows, visualization with pyLDA??? 
 - keep track of average doc len, num of non-0 clusters per iteration
 - to pickle: predicted labels, dict of true/predicted most frequent words/topic
 - numpy.save/load: 
