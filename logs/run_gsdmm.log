@@ -1,0 +1,7 @@
+03/14/2020 08:48:39 PM __main__ - INFO: ***START GSDMM***
+03/14/2020 08:48:39 PM __main__ - INFO: loading and preprocessing corpus files for short and long texts from/Users/noonscape/Documents/CompLingSaar/FinalProject/GSDMM/data/title_StackOverflow.txt and /Users/noonscape/Documents/CompLingSaar/FinalProject/GSDMM/data/movies-pp.txt
+03/14/2020 08:48:50 PM __main__ - INFO: loading true label file from /Users/noonscape/Documents/CompLingSaar/FinalProject/GSDMM/data/label_StackOverflow.txt
+03/14/2020 08:48:50 PM eval - INFO: loading pickle file: /Users/noonscape/Documents/CompLingSaar/FinalProject/GSDMM/pickled/true_most_freq_words_by_topic.pickle
+03/14/2020 08:48:50 PM __main__ - INFO: No pickle found
+03/14/2020 08:48:50 PM gsdmm - INFO: Starting output file with true clusters, saving to: /Users/noonscape/Documents/CompLingSaar/FinalProject/GSDMM/output/gsdmm_clusters_and_representative_words.out
+03/14/2020 08:48:50 PM gsdmm - INFO: dumping pickle file to: /Users/noonscape/Documents/CompLingSaar/FinalProject/GSDMM/pickled/true_most_freq_words_by_topic.pickle

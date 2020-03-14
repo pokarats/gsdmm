@@ -1,4 +1,5 @@
 import pickle
+import logging
 import preprocess
 import matplotlib.pyplot as plt
 from sklearn.metrics import normalized_mutual_info_score as nmi
@@ -7,6 +8,7 @@ from sklearn.metrics import homogeneity_completeness_v_measure as hcv
 
 
 def read_pickle(filename):
+    logging.getLogger(__name__).info(f'loading pickle file: {filename}')
     with open(filename, 'rb') as saved_pickle:
         return pickle.load(saved_pickle)
 

@@ -2,6 +2,10 @@ import configparser
 import argparse
 import logging
 from pathlib import Path
+import preprocess
+import gsdmm
+import eval
+
 
 # path to default config file
 PROJECT_DIR = Path(__file__).resolve().parent.parent
@@ -65,7 +69,7 @@ def main():
 
     # default values for GSDMM parameters
     conf_alpha = float(config['PARAMS']['ALPHA'])
-    conf_beta = float(config['PARAMS']['BETA'])
+    conf_beta = [float(beta) for beta in config['PARAMS']['BETA'].split(',')]
     conf_k = int(config['PARAMS']['K'])
     conf_iterations = int(config['PARAMS']['ITERATIONS'])
     conf_runs = int(config['PARAMS']['RUNS'])
@@ -82,7 +86,7 @@ def main():
     fin_true_labels = pargs_true_labels if pargs_true_labels else conf_true_labels
 
     fin_alpha = pargs_alpha if pargs_alpha else conf_alpha
-    fin_beta = pargs_beta if pargs_beta else conf_beta
+    fin_beta = [pargs_beta] if pargs_beta else conf_beta
     fin_k = pargs_k if pargs_k else conf_k
     fin_iterations = pargs_iterations if pargs_iterations else conf_iterations
     fin_runs = pargs_runs if pargs_runs else conf_runs
@@ -92,13 +96,45 @@ def main():
     # setup logging
     log_filename = str(PROJECT_DIR / fin_log_dir / 'run_gsdmm.log')
     logger = logging.getLogger(__name__)
-    logging.basicConfig(filename=log_filename, level=logging.INFO)
+    logging.basicConfig(filename=log_filename, filemode='w', format='%(asctime)s %(name)s - %(levelname)s: %(message)s',
+                        datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.INFO)
 
-    logger.info('*****LOADING FILES AND CHECKING FILE PATHS******')
+    logger.info('***START GSDMM***')
+    # all filenames are pathlib Path not string
     short_corpus_filename = PROJECT_DIR / fin_data_dir / fin_corpus_short
     long_corpus_filename = PROJECT_DIR / fin_data_dir / fin_corpus_long
     true_label_filename = PROJECT_DIR / fin_data_dir / fin_true_labels
-    predicted_label_pickles = PROJECT_DIR / fin_pickle_dir
+    predicted_label_pickles = PROJECT_DIR / fin_pickle_dir / 'predicted'
+    true_pickles = PROJECT_DIR / fin_pickle_dir / 'true'
+    output_filename = PROJECT_DIR / fin_output_dir / 'gsdmm_clusters_and_representative_words.out'
+
+    logger.info(f'loading and preprocessing corpus files for short and long texts from'
+                f'{short_corpus_filename} and {long_corpus_filename}')
+    short_text_corpus = preprocess.load_corpus(short_corpus_filename)
+    long_text_corpus = preprocess.load_corpus(long_corpus_filename)
+
+    short_text_vocab = preprocess.Vocabulary()
+    short_text_docs = [short_text_vocab.doc_to_ids(doc) for doc in short_text_corpus]
+
+    long_text_vocab = preprocess.Vocabulary()
+    long_text_docs = [long_text_vocab.doc_to_ids(doc) for doc in long_text_corpus]
+
+    logger.info(f'loading true label file from {true_label_filename}')
+    true_labels = preprocess.load_labels(true_label_filename)
+    true_clusters = preprocess.make_topic_clusters(true_labels)
+    try:
+        true_most_frequent_words_by_topic = eval.read_pickle(f'{str(true_pickles)}_most_freq_words_by_topic.pickle')
+    except FileNotFoundError:
+        to_pickle_filename = f'{str(true_pickles)}_most_freq_words_by_topic.pickle'
+        logger.info('No pickle found')
+        true_most_frequent_words_by_topic = gsdmm.true_most_populated_clusters(true_clusters, short_text_docs,
+                                                                               short_text_vocab, output_filename,
+                                                                               fin_num_words)
+        gsdmm.make_pickle(to_pickle_filename, true_most_frequent_words_by_topic)
+
+
+
+
 
 
 if __name__ == '__main__':

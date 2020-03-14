@@ -1,5 +1,5 @@
 import timeit
-
+import logging
 import numpy as np
 from collections import Counter
 from tqdm import tqdm, trange
@@ -157,31 +157,34 @@ class GSDMM:
 
 
 def make_pickle(filename, obj_to_pickle):
+    logging.getLogger(__name__).info(f'dumping pickle file to: {filename}')
     with open(filename, 'wb') as w_file:
         pickle.dump(obj_to_pickle, w_file)
     return None
 
 
-def predict_most_populated_clusters(gsdmm, vocab, num_wanted_topics=20, num_wanted_words=5):
+def predict_most_populated_clusters(gsdmm, vocab, filename, num_wanted_words=5, num_wanted_topics=20):
     highest_num_docs = np.sort(gsdmm.num_docs_per_topic)[::-1][:num_wanted_topics]
     most_docs_topics = np.argsort(gsdmm.num_docs_per_topic)[::-1][:num_wanted_topics]
-    print(f'Number of documents per topic for most populated clusters: {highest_num_docs}')
-    print(f'Topic labels with highest numbers of documents: {most_docs_topics}')
+    with open(filename, 'a') as w_file:
+        print(f'Predicted number of documents per topic for most populated clusters: {highest_num_docs}\n'
+              f'Predicted topic labels with highest numbers of documents: {most_docs_topics}', file=w_file)
 
     most_frequent_words_by_topic = {}
-    for topic in most_docs_topics:
-        most_freq_words_ids = np.argsort(gsdmm.word_count_num_topics_by_vocab_size[topic, :])[::-1][:num_wanted_words]
-        highest_word_freq = np.sort(gsdmm.word_count_num_topics_by_vocab_size[topic, :])[::-1][:num_wanted_words]
-        most_frequent_words = [(vocab.id_to_word[word_id], freq) for word_id, freq in zip(most_freq_words_ids,
-                                                                                          highest_word_freq)]
-        most_frequent_words_by_topic[topic] = most_frequent_words
-        print(f'Topic label: {topic}\tMost frequent words: {most_frequent_words}')
+    with open(filename, 'a') as w_file:
+        for topic in most_docs_topics:
+            most_freq_words_ids = np.argsort(gsdmm.word_count_num_topics_by_vocab_size[topic, :])[::-1][:num_wanted_words]
+            highest_word_freq = np.sort(gsdmm.word_count_num_topics_by_vocab_size[topic, :])[::-1][:num_wanted_words]
+            most_frequent_words = [(vocab.id_to_word[word_id], freq) for word_id, freq in zip(most_freq_words_ids,
+                                                                                              highest_word_freq)]
+            most_frequent_words_by_topic[topic] = most_frequent_words
+            print(f'Predicted topic label: {topic}\tMost frequent words: {most_frequent_words}', file=w_file)
 
     return most_frequent_words_by_topic
-    # TODO write option to pickle dict to file
 
 
-def true_most_populated_clusters(true_clusters, documents, vocab, num_wanted_topics=20, num_wanted_words=5):
+def true_most_populated_clusters(true_clusters, documents, vocab, filename, num_wanted_words=5, num_wanted_topics=20):
+    logging.getLogger(__name__).info(f'Starting output file with true clusters, saving to: {filename}')
     # true_clusters is a list of list of docs in a topic, len(list of docs) == num_docs_per_topic
     num_topics = len(true_clusters)
     cluster_size = []
@@ -189,7 +192,9 @@ def true_most_populated_clusters(true_clusters, documents, vocab, num_wanted_top
         cluster_size.append(len(cluster))
 
     num_docs_per_topic = cluster_size[:num_wanted_topics]
-    print(f'Number of documents per topic in true clusters: {num_docs_per_topic}')
+
+    with open(filename, 'w') as w_file:
+        print(f'Number of documents per topic in true clusters: {num_docs_per_topic}', file=w_file)
 
     word_count_per_topic = np.zeros(num_topics, dtype=np.uintc)
     word_count_num_topics_by_vocab_size = np.zeros((num_topics, vocab.size()), dtype=np.uintc)
@@ -200,16 +205,17 @@ def true_most_populated_clusters(true_clusters, documents, vocab, num_wanted_top
                 word_count_num_topics_by_vocab_size[topic_index, word_id] += 1
 
     most_frequent_words_by_topic = {}
-    for topic_index in range(num_topics):
-        most_freq_words_ids = np.argsort(word_count_num_topics_by_vocab_size[topic_index, :])[::-1][:num_wanted_words]
-        highest_word_freq = np.sort(word_count_num_topics_by_vocab_size[topic_index, :])[::-1][:num_wanted_words]
-        most_frequent_words = [(vocab.id_to_word[word_id], freq) for word_id, freq in zip(most_freq_words_ids,
-                                                                                          highest_word_freq)]
-        most_frequent_words_by_topic[topic_index] = most_frequent_words
-        print(f'True topic label: {topic_index}\tMost frequent words: {most_frequent_words}')
+    with open(filename, 'a') as w_file:
+        for topic_index in range(num_topics):
+            most_freq_words_ids = np.argsort(word_count_num_topics_by_vocab_size[topic_index, :])[::-1][
+                                  :num_wanted_words]
+            highest_word_freq = np.sort(word_count_num_topics_by_vocab_size[topic_index, :])[::-1][:num_wanted_words]
+            most_frequent_words = [(vocab.id_to_word[word_id], freq) for word_id, freq in zip(most_freq_words_ids,
+                                                                                              highest_word_freq)]
+            most_frequent_words_by_topic[topic_index] = most_frequent_words
+            print(f'True topic label: {topic_index}\tMost frequent words: {most_frequent_words}', file=w_file)
 
     return most_frequent_words_by_topic
-    # TODO write option to pickle the most_frequent_words_by_topic dict to file
 
 
 def main():
