@@ -1,11 +1,44 @@
-03/15/2020 11:54:06 AM __main__ - INFO: ***START GSDMM***
-03/15/2020 11:54:06 AM __main__ - INFO: loading and preprocessing corpus files for short and long texts from/Users/noonscape/Documents/CompLingSaar/FinalProject/GSDMM/data/title_StackOverflow.txt and /Users/noonscape/Documents/CompLingSaar/FinalProject/GSDMM/data/movies-pp.txt
-03/15/2020 11:54:32 AM __main__ - INFO: loading true label file from /Users/noonscape/Documents/CompLingSaar/FinalProject/GSDMM/data/label_StackOverflow.txt
-03/15/2020 11:54:32 AM eval - INFO: loading pickle file: /Users/noonscape/Documents/CompLingSaar/FinalProject/GSDMM/pickled/true_most_freq_words_by_topic.pickle
-03/15/2020 11:54:32 AM __main__ - INFO: experimenting with betas: [0.02, 0.1, 0.2]
+03/15/2020 01:33:11 PM __main__ - INFO: ***START GSDMM***
+03/15/2020 01:33:11 PM __main__ - INFO: loading and preprocessing corpus files for short and long texts from/home/CE/supoka/CompLing/gsdmm/data/title_StackOverflow.txt and /home/CE/supoka/CompLing/gsdmm/data/movies-pp.txt
+03/15/2020 01:33:33 PM __main__ - INFO: loading true label file from /home/CE/supoka/CompLing/gsdmm/data/label_StackOverflow.txt
+03/15/2020 01:33:33 PM eval - INFO: loading pickle file: /home/CE/supoka/CompLing/gsdmm/pickled/true_most_freq_words_by_topic.pickle
+03/15/2020 01:33:33 PM __main__ - INFO: experimenting with betas: [0.02, 0.1, 0.2]
 each run is for 10 iterations
 running model on short text corpus
 
-03/15/2020 11:57:13 AM eval - INFO: loading pickle file: /Users/noonscape/Documents/CompLingSaar/FinalProject/GSDMM/pickled/predicted_num_clusters_by_it_per_beta_list.pickle
-03/15/2020 12:05:01 PM eval - INFO: loading pickle file: /Users/noonscape/Documents/CompLingSaar/FinalProject/GSDMM/pickled/predicted_labels_by_beta.pickle
-03/15/2020 12:05:04 PM eval - INFO: loading pickle file: /Users/noonscape/Documents/CompLingSaar/FinalProject/GSDMM/pickled/predicted_freq_words_by_beta.pickle
+03/15/2020 01:33:33 PM eval - INFO: loading pickle file: /home/CE/supoka/CompLing/gsdmm/pickled/predicted_2_num_clusters_by_it_per_beta_list.pickle
+03/15/2020 01:33:33 PM gsdmm - INFO: Initializing an GSDMM instance with parameters:
+K: 100
+alpha: 0.1
+beta: 0.02
+03/15/2020 02:28:34 PM gsdmm - INFO: generating list of predicted labels for docs
+03/15/2020 02:28:34 PM __main__ - INFO: Number of specified clusters: 20
+03/15/2020 02:28:34 PM __main__ - INFO: Number of topics at last iteration: 98
+03/15/2020 02:28:34 PM __main__ - INFO: Number of wanted topics: 98
+03/15/2020 02:28:34 PM gsdmm - INFO: Writing output file with predicted clusters, saving to: /home/CE/supoka/CompLing/gsdmm/output/gsdmm_clusters_and_representative_words_2.out
+Number of non-zero doc topics: 98
+03/15/2020 02:28:35 PM gsdmm - INFO: Initializing an GSDMM instance with parameters:
+K: 100
+alpha: 0.1
+beta: 0.1
+03/15/2020 03:23:25 PM gsdmm - INFO: generating list of predicted labels for docs
+03/15/2020 03:23:25 PM __main__ - INFO: Number of specified clusters: 20
+03/15/2020 03:23:25 PM __main__ - INFO: Number of topics at last iteration: 32
+03/15/2020 03:23:25 PM __main__ - INFO: Number of wanted topics: 32
+03/15/2020 03:23:25 PM gsdmm - INFO: Writing output file with predicted clusters, saving to: /home/CE/supoka/CompLing/gsdmm/output/gsdmm_clusters_and_representative_words_2.out
+Number of non-zero doc topics: 32
+03/15/2020 03:23:25 PM gsdmm - INFO: Initializing an GSDMM instance with parameters:
+K: 100
+alpha: 0.1
+beta: 0.2
+03/15/2020 04:18:37 PM gsdmm - INFO: generating list of predicted labels for docs
+03/15/2020 04:18:37 PM __main__ - INFO: Number of specified clusters: 20
+03/15/2020 04:18:37 PM __main__ - INFO: Number of topics at last iteration: 19
+03/15/2020 04:18:37 PM __main__ - INFO: Number of wanted topics: 19
+03/15/2020 04:18:37 PM gsdmm - INFO: Writing output file with predicted clusters, saving to: /home/CE/supoka/CompLing/gsdmm/output/gsdmm_clusters_and_representative_words_2.out
+Number of non-zero doc topics: 19
+03/15/2020 04:18:37 PM gsdmm - INFO: dumping pickle file to: /home/CE/supoka/CompLing/gsdmm/pickled/predicted_2_num_clusters_by_it_per_beta_list.pickle
+03/15/2020 04:18:37 PM gsdmm - INFO: dumping pickle file to: /home/CE/supoka/CompLing/gsdmm/pickled/predicted_2_labels_by_beta.pickle
+03/15/2020 04:18:37 PM gsdmm - INFO: dumping pickle file to: /home/CE/supoka/CompLing/gsdmm/pickled/predicted_2_freq_words_by_beta.pickle
+03/15/2020 04:18:37 PM __main__ - INFO: plotting number of clusters per iteration with changing betas in short text corpus
+03/15/2020 04:18:37 PM eval - INFO: plotting cluster_per_iteration_at_different_beta
