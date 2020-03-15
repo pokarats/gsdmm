@@ -182,9 +182,9 @@ def main():
     logger.info(f'experimenting with betas: {fin_beta}\n'
                 f'each run is for {fin_iterations} iterations\n'
                 f'running model on short text corpus\n')
-    predicted_clusters_pickle_file = f'{str(predicted_pickles)}_num_clusters_by_it_per_beta_list.pickle'
-    predicted_labels_pickle_file = f'{str(predicted_pickles)}_labels_by_beta.pickle'
-    predicted_freq_words_pickle_file = f'{str(predicted_pickles)}_freq_words_by_beta.pickle'
+    predicted_clusters_pickle_file = f'{str(predicted_pickles)}_{fin_run}_num_clusters_by_it_per_beta_list.pickle'
+    predicted_labels_pickle_file = f'{str(predicted_pickles)}_{fin_run}_labels_by_beta.pickle'
+    predicted_freq_words_pickle_file = f'{str(predicted_pickles)}_{fin_run}_freq_words_by_beta.pickle'
     try:
         num_clusters_by_beta = eval.read_pickle(predicted_clusters_pickle_file)
         predicted_labels_by_beta = eval.read_pickle(predicted_labels_pickle_file)
