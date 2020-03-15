@@ -12,24 +12,33 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 DEFAULTS = PROJECT_DIR / 'source_code' / 'default_config.cfg'
 
 
-def experiment_with_beta(beta_list, iterations, corpus_docs, vocab_size, num_topics, alpha):
+def experiment_with_beta(beta_list, iterations, docs, vocab, num_topics, alpha, filename, num_words, wanted_topics):
     """
 
+    :param wanted_topics:
+    :param num_words:
+    :param filename:
     :param beta_list:
     :param iterations:
-    :param corpus_docs:
-    :param vocab_size:
+    :param docs:
+    :param vocab:
     :param num_topics:
     :param alpha:
-    :return: tuple of 2 lists: list of lists of num_cluisters per iteration, list of lists of predicted labels
+    :return: tuple of 3 lists: list of lists of num_cluisters per iteration, list of lists of predicted labels,
+    list of lists predicted_most_frequent_words_by_topic
     """
     num_clusters_by_beta = []  # list of lists of num_clusters per iteration
     topic_labels_by_beta = []  # list of lists of predicted labels from each run
+    predicted_most_freq_words_by_topic_lists = []
     for beta in beta_list:
-        model = gsdmm.GSDMM(corpus_docs, vocab_size, num_topics, alpha, beta)
+        model = gsdmm.GSDMM(docs, vocab.size(), num_topics, alpha, beta)
         num_clusters_by_beta.append(model.gibbs_sampling_topic_reassignment(iterations))
         topic_labels_by_beta.append(model.predict_doc_topic_labels())
-    return num_clusters_by_beta, topic_labels_by_beta
+        most_freq_words_by_topic = gsdmm.predict_most_populated_clusters(model, vocab, filename, num_words,
+                                                                         wanted_topics)
+        predicted_most_freq_words_by_topic_lists.append(most_freq_words_by_topic)
+
+    return num_clusters_by_beta, topic_labels_by_beta, predicted_most_freq_words_by_topic_lists
 
 
 def main():
@@ -124,11 +133,12 @@ def main():
     short_corpus_filename = PROJECT_DIR / fin_data_dir / fin_corpus_short
     long_corpus_filename = PROJECT_DIR / fin_data_dir / fin_corpus_long
     true_label_filename = PROJECT_DIR / fin_data_dir / fin_true_labels
-    predicted_label_pickles = PROJECT_DIR / fin_pickle_dir / 'predicted'
+    predicted_pickles = PROJECT_DIR / fin_pickle_dir / 'predicted'
     true_pickles = PROJECT_DIR / fin_pickle_dir / 'true'
     output_dir = PROJECT_DIR / fin_output_dir
     output_filename = output_dir / 'gsdmm_clusters_and_representative_words.out'
 
+    # loading files and pre-processing
     logger.info(f'loading and preprocessing corpus files for short and long texts from'
                 f'{short_corpus_filename} and {long_corpus_filename}')
     short_text_corpus = preprocess.load_corpus(short_corpus_filename)
@@ -140,28 +150,43 @@ def main():
     long_text_vocab = preprocess.Vocabulary()
     long_text_docs = [long_text_vocab.doc_to_ids(doc) for doc in long_text_corpus]
 
+    # loading true labels and representative words in true clusters
     logger.info(f'loading true label file from {true_label_filename}')
     true_labels = preprocess.load_labels(true_label_filename)
     true_clusters = preprocess.make_topic_clusters(true_labels)
+
+    true_pickle_filename = f'{str(true_pickles)}_most_freq_words_by_topic.pickle'
     try:
-        true_most_frequent_words_by_topic = eval.read_pickle(f'{str(true_pickles)}_most_freq_words_by_topic.pickle')
+        true_most_frequent_words_by_topic = eval.read_pickle(true_pickle_filename)
     except FileNotFoundError:
-        to_pickle_filename = f'{str(true_pickles)}_most_freq_words_by_topic.pickle'
         logger.info('No pickle found')
         true_most_frequent_words_by_topic = gsdmm.true_most_populated_clusters(true_clusters, short_text_docs,
                                                                                short_text_vocab, output_filename,
                                                                                fin_num_words)
-        gsdmm.make_pickle(to_pickle_filename, true_most_frequent_words_by_topic)
+        gsdmm.make_pickle(true_pickle_filename, true_most_frequent_words_by_topic)
 
-    # running gsdmm on 3 different beta values
+    # running gsdmm on different beta values or load from pickled
     logger.info(f'experimenting with betas: {fin_beta}\n'
                 f'each run is for {fin_iterations} iterations'
                 f'running model on short text corpus\n')
-    num_clusters_by_beta, predicted_labels_by_beta = experiment_with_beta(fin_beta, fin_iterations, short_text_docs,
-                                                                          short_text_vocab.size(), fin_k, fin_alpha)
+    predicted_clusters_pickle_file = f'{str(predicted_pickles)}_num_clusters_by_it_per_beta_list.pickle'
+    predicted_labels_pickle_file = f'{str(predicted_pickles)}_labels_by_beta.pickle'
+    predicted_freq_words_pickle_file = f'{str(predicted_pickles)}_freq_words_by_beta.pickle'
+    try:
+        num_clusters_by_beta = eval.read_pickle(predicted_clusters_pickle_file)
+        predicted_labels_by_beta = eval.read_pickle(predicted_labels_pickle_file)
+        most_freq_words_by_beta = eval.read_pickle(predicted_freq_words_pickle_file)
+    except FileNotFoundError:
+        # running gsdmm on different beta values
+        num_clusters_by_beta, predicted_labels_by_beta, most_freq_words_by_beta = experiment_with_beta(
+            fin_beta, fin_iterations, short_text_docs, short_text_vocab, fin_k, fin_alpha, output_filename,
+            fin_num_words, fin_clusters)
+        gsdmm.make_pickle(predicted_clusters_pickle_file, num_clusters_by_beta)
+        gsdmm.make_pickle(predicted_labels_pickle_file, predicted_labels_by_beta)
+        gsdmm.make_pickle(predicted_freq_words_pickle_file, most_freq_words_by_beta)
 
     # plotting progression of number of non-zero clusters with each iteration
-    logger.info(f'plotting number of clusters per iteration with changing betas')
+    logger.info(f'plotting number of clusters per iteration with changing betas in short text corpus')
     plot_group_label = [f'beta = {str(beta)}' for beta in fin_beta]
     eval.plot_results([i for i in range(1, 11)], *num_clusters_by_beta, x_label='Iterations',
                       y_label='Number of Non-Zero Clusters', title='cluster_per_iteration_at_different_beta',
@@ -169,9 +194,10 @@ def main():
 
     # evaluate model performance in terms of NMI, Homogeneity and Completeness
     nmi_list, h_list, c_list = eval.model_performance(true_labels, predicted_labels_by_beta)
-    logger.info(f'plotting eval metrics: NMI, Homogeneity, Completeness with changing betas')
+    logger.info(f'plotting eval metrics short corpus: NMI, Homogeneity, Completeness with changing betas')
     eval.plot_results(fin_beta, nmi_list, h_list, c_list, x_label='Beta Values', y_label='Performance',
-                      title='performance_at_different_beta', file_directory=output_dir, labels=plot_group_label)
+                      title='performance_at_different_beta', file_directory=output_dir, labels=
+                      ['NMI, Homogeneity, Completeness'])
 
 
 if __name__ == '__main__':
