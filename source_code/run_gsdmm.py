@@ -17,7 +17,7 @@ def experiment_with_beta(beta_list, iterations, docs, vocab, num_topics, alpha, 
 
     :param wanted_topics: number of topics to display
     :param num_words: number of representative words to display
-    :param filename: name of output file
+    :param filename: name of output file, either pathlib.Path or str
     :param beta_list: list of beta values to experiment with
     :param iterations: number of iterations to run Gibbs sampling
     :param docs: pre-processed corpus in form of list of lists of int-represented word tokens
@@ -79,6 +79,7 @@ def main():
     parser.add_argument('--run', type=int, help='run id for log tracking', default=None)
     parser.add_argument('--clusters', type=int, help='number of clusters to show in output', default=None)
     parser.add_argument('--num_words', type=int, help='number of words in clusters to show in output', default=None)
+    parser.add_argument('--long', type=bool, help='Whether or not to run GSDMM on the long text corpus', default=False)
 
     # parse command line overrides
     pargs = parser.parse_args()
@@ -90,6 +91,7 @@ def main():
     pargs_corpus_short = pargs.short_corpus
     pargs_corpus_long = pargs.long_corpus
     pargs_true_labels = pargs.labels
+    pargs_long = pargs.long
 
     pargs_alpha = pargs.alpha
     pargs_beta = pargs.beta
@@ -200,19 +202,50 @@ def main():
         gsdmm.make_pickle(predicted_labels_pickle_file, predicted_labels_by_beta)
         gsdmm.make_pickle(predicted_freq_words_pickle_file, most_freq_words_by_beta)
 
-    # plotting progression of number of non-zero clusters with each iteration
+    # plotting progression of number of non-zero clusters with each iteration for short text corpus
     logger.info(f'plotting number of clusters per iteration with changing betas in short text corpus')
     plot_group_label = [f'beta = {str(beta)}' for beta in fin_beta]
     eval.plot_results([i for i in range(1, 11)], *num_clusters_by_beta, x_label='Iterations',
-                      y_label='Number of Non-Zero Clusters', title='cluster_per_iteration_at_different_beta',
-                      file_directory=output_dir, labels=plot_group_label)
+                      y_label='Number of Non-Zero Clusters', title='short_text_clusters_per_iteration_at_different_beta'
+                      , file_directory=output_dir, labels=plot_group_label)
 
-    # evaluate model performance in terms of NMI, Homogeneity and Completeness
+    # evaluate model performance in terms of NMI, Homogeneity and Completeness for short text corpus
     nmi_list, h_list, c_list = eval.model_performance(true_labels, predicted_labels_by_beta)
     logger.info(f'plotting eval metrics short corpus: NMI, Homogeneity, Completeness with changing betas')
     eval.plot_results(fin_beta, nmi_list, h_list, c_list, x_label='Beta Values', y_label='Performance',
-                      title='performance_at_different_beta', file_directory=output_dir, labels=
-                      ['NMI', 'Homogeneity', 'Completeness'])
+                          title='performance_at_different_beta', file_directory=output_dir, labels=
+                          ['NMI', 'Homogeneity', 'Completeness'])
+
+    if pargs_long:
+        # running gsdmm on different beta values or load from pickled
+        logger.info(f'experimenting with betas: {fin_beta}\n'
+                    f'each run is for {fin_iterations} iterations\n'
+                    f'running model on long text corpus\n')
+        predicted_clusters_pickle_file_long = f'{str(predicted_pickles)}_{fin_run}_long_num_clusters_by_it_per_beta_list.pickle'
+        predicted_labels_pickle_file_long = f'{str(predicted_pickles)}_{fin_run}__long_labels_by_beta.pickle'
+        predicted_freq_words_pickle_file_long = f'{str(predicted_pickles)}_{fin_run}_long_freq_words_by_beta.pickle'
+        try:
+            num_clusters_by_beta_long = eval.read_pickle(predicted_clusters_pickle_file_long)
+            predicted_labels_by_beta_long = eval.read_pickle(predicted_labels_pickle_file_long)
+            most_freq_words_by_beta_long = eval.read_pickle(predicted_freq_words_pickle_file_long)
+        except FileNotFoundError:
+            output_filename_long = f'{str(output_filename)}.long'
+            # running gsdmm on different beta values
+            num_clusters_by_beta_long, predicted_labels_by_beta_long, most_freq_words_by_beta_long = \
+                experiment_with_beta(fin_beta, fin_iterations, long_text_docs, long_text_vocab, fin_k, fin_alpha,
+                                     output_filename_long, fin_num_words, fin_clusters)
+            gsdmm.make_pickle(predicted_clusters_pickle_file_long, num_clusters_by_beta_long)
+            gsdmm.make_pickle(predicted_labels_pickle_file_long, predicted_labels_by_beta_long)
+            gsdmm.make_pickle(predicted_freq_words_pickle_file_long, most_freq_words_by_beta_long)
+
+        # plotting number of clusters per iteration at changing betas for long text corpus
+        logger.info(f'plotting number of clusters per iteration in long text corpus')
+        eval.plot_results([i for i in range(1, fin_iterations + 1)], *num_clusters_by_beta_long, x_label='Iterations',
+                          y_label='Number of Non-Zero Clusters',
+                          title='long_text_clusters_per_iteration_at_different_beta',
+                          file_directory=output_dir, labels=plot_group_label)
+
+    logger.info('****FINISH RUNNING GSDMM****')
 
 
 if __name__ == '__main__':
