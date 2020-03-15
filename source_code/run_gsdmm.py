@@ -42,11 +42,16 @@ def experiment_with_beta(beta_list, iterations, docs, vocab, num_topics, alpha, 
         end_num_topics = num_clusters_per_iter[-1]
         if end_num_topics > wanted_topics:
             wanted_topics = end_num_topics
+        logging.info(f'Number of wanted topics: {wanted_topics}')
         most_freq_words_by_topic = gsdmm.predict_most_populated_clusters(model, vocab, filename, num_words,
                                                                          wanted_topics)
         predicted_most_freq_words_by_topic_lists.append(most_freq_words_by_topic)
 
     return num_clusters_by_beta, topic_labels_by_beta, predicted_most_freq_words_by_topic_lists
+
+
+def eval_performance():
+    pass
 
 
 def main():
@@ -69,7 +74,7 @@ def main():
     parser.add_argument('--beta', type=float, help='beta value for Dirichlet', default=None)
     parser.add_argument('--k', type=int, help='upper bound of expected number of clusters', default=None)
     parser.add_argument('--iterations', type=int, help='number of iterations to reapeat Gibbs sampling', default=None)
-    parser.add_argument('--runs', type=int, help='how many times of to run GSDMM on each corpus', default=None)
+    parser.add_argument('--run', type=int, help='run id for log tracking', default=None)
     parser.add_argument('--clusters', type=int, help='number of clusters to show in output', default=None)
     parser.add_argument('--num_words', type=int, help='number of words in clusters to show in output', default=None)
 
@@ -88,7 +93,7 @@ def main():
     pargs_beta = pargs.beta
     pargs_k = pargs.k
     pargs_iterations = pargs.iterations
-    pargs_runs = pargs.runs
+    pargs_run = pargs.run
     pargs_clusters = pargs.clusters
     pargs_num_words = pargs.num_words
 
@@ -109,7 +114,7 @@ def main():
     conf_beta = [float(beta) for beta in config['PARAMS']['BETA'].split(',')]
     conf_k = int(config['PARAMS']['K'])
     conf_iterations = int(config['PARAMS']['ITERATIONS'])
-    conf_runs = int(config['PARAMS']['RUNS'])
+    conf_run = int(config['PARAMS']['RUN'])
     conf_clusters = int(config['PARAMS']['CLUSTERS'])
     conf_num_words = int(config['PARAMS']['NUM_WORDS'])
 
@@ -126,12 +131,12 @@ def main():
     fin_beta = [pargs_beta] if pargs_beta else conf_beta
     fin_k = pargs_k if pargs_k else conf_k
     fin_iterations = pargs_iterations if pargs_iterations else conf_iterations
-    fin_runs = pargs_runs if pargs_runs else conf_runs
+    fin_run = pargs_run if pargs_run else conf_run
     fin_clusters = pargs_clusters if pargs_corpus_long else conf_clusters
     fin_num_words = pargs_num_words if pargs_num_words else conf_num_words
 
     # setup logging
-    log_filename = str(PROJECT_DIR / fin_log_dir / 'run_gsdmm.log')
+    log_filename = str(PROJECT_DIR / fin_log_dir / f'run_gsdmm_{fin_run}.log')
     logger = logging.getLogger(__name__)
     logging.basicConfig(filename=log_filename, filemode='w', format='%(asctime)s %(name)s - %(levelname)s: %(message)s',
                         datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.INFO)
@@ -144,7 +149,7 @@ def main():
     predicted_pickles = PROJECT_DIR / fin_pickle_dir / 'predicted'
     true_pickles = PROJECT_DIR / fin_pickle_dir / 'true'
     output_dir = PROJECT_DIR / fin_output_dir
-    output_filename = output_dir / 'gsdmm_clusters_and_representative_words.out'
+    output_filename = output_dir / f'gsdmm_clusters_and_representative_words_{fin_run}.out'
 
     # loading files and pre-processing
     logger.info(f'loading and preprocessing corpus files for short and long texts from'
@@ -175,7 +180,7 @@ def main():
 
     # running gsdmm on different beta values or load from pickled
     logger.info(f'experimenting with betas: {fin_beta}\n'
-                f'each run is for {fin_iterations} iterations'
+                f'each run is for {fin_iterations} iterations\n'
                 f'running model on short text corpus\n')
     predicted_clusters_pickle_file = f'{str(predicted_pickles)}_num_clusters_by_it_per_beta_list.pickle'
     predicted_labels_pickle_file = f'{str(predicted_pickles)}_labels_by_beta.pickle'
@@ -205,7 +210,7 @@ def main():
     logger.info(f'plotting eval metrics short corpus: NMI, Homogeneity, Completeness with changing betas')
     eval.plot_results(fin_beta, nmi_list, h_list, c_list, x_label='Beta Values', y_label='Performance',
                       title='performance_at_different_beta', file_directory=output_dir, labels=
-                      ['NMI, Homogeneity, Completeness'])
+                      ['NMI', 'Homogeneity', 'Completeness'])
 
 
 if __name__ == '__main__':
