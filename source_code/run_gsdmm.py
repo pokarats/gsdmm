@@ -31,6 +31,7 @@ def experiment_with_beta(beta_list, iterations, docs, vocab, num_topics, alpha, 
     num_clusters_by_beta = []  # list of lists of num_clusters per iteration
     topic_labels_by_beta = []  # list of lists of predicted labels from each run
     predicted_most_freq_words_by_topic_lists = []
+    spec_wanted_topics = wanted_topics
     for beta in beta_list:
         model = gsdmm.GSDMM(docs, vocab.size(), num_topics, alpha, beta)
 
@@ -40,9 +41,14 @@ def experiment_with_beta(beta_list, iterations, docs, vocab, num_topics, alpha, 
 
         # number of topics == the number of non-zero clusters after the last iteration
         end_num_topics = num_clusters_per_iter[-1]
-        if end_num_topics > wanted_topics:
+        if end_num_topics >= spec_wanted_topics:
             wanted_topics = end_num_topics
-        logging.info(f'Number of wanted topics: {wanted_topics}')
+        else:
+            # end_num_topics < spec_wanted_topics
+            wanted_topics = end_num_topics
+        logging.getLogger(__name__).info(f'Number of specified clusters: {spec_wanted_topics}')
+        logging.getLogger(__name__).info(f'Number of topics at last iteration: {end_num_topics}')
+        logging.getLogger(__name__).info(f'Number of wanted topics: {wanted_topics}')
         most_freq_words_by_topic = gsdmm.predict_most_populated_clusters(model, vocab, filename, num_words,
                                                                          wanted_topics)
         predicted_most_freq_words_by_topic_lists.append(most_freq_words_by_topic)
@@ -132,7 +138,7 @@ def main():
     fin_k = pargs_k if pargs_k else conf_k
     fin_iterations = pargs_iterations if pargs_iterations else conf_iterations
     fin_run = pargs_run if pargs_run else conf_run
-    fin_clusters = pargs_clusters if pargs_corpus_long else conf_clusters
+    fin_clusters = pargs_clusters if pargs_clusters else conf_clusters
     fin_num_words = pargs_num_words if pargs_num_words else conf_num_words
 
     # setup logging

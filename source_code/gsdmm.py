@@ -10,8 +10,8 @@ import pickle
 class GSDMM:
     def __init__(self, documents, vocab_size, num_topics=50, alpha=0.1, beta=0.1):
         logging.getLogger(__name__).info(f'Initializing an GSDMM instance with parameters:\n'
-                                         f'K: {num_topics}'
-                                         f'alpha: {alpha}'
+                                         f'K: {num_topics}\n'
+                                         f'alpha: {alpha}\n'
                                          f'beta: {beta}')
         self.documents = documents
         self.num_topics = num_topics
