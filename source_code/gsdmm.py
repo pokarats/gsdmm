@@ -150,6 +150,10 @@ class GSDMM:
         return normalized_prob.astype(np.float64)
 
     def predict_doc_topic_labels(self):
+        """
+
+        :return: list of topic labels for all docs
+        """
         logging.getLogger(__name__).info(f'generating list of predicted labels for docs')
         predicted_labels = []
         for doc_index in range(self.num_docs):
@@ -226,6 +230,7 @@ def true_most_populated_clusters(true_clusters, documents, vocab, filename, num_
 
 
 def main():
+    # please ignore code blocks below; they're there for testing
     toy_filename = '../data/toy.txt'
     sofl_filename = '../data/title_StackOverflow.txt'
     toy_corpus = preprocess.load_corpus(toy_filename)

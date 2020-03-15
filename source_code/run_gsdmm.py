@@ -15,15 +15,15 @@ DEFAULTS = PROJECT_DIR / 'source_code' / 'default_config.cfg'
 def experiment_with_beta(beta_list, iterations, docs, vocab, num_topics, alpha, filename, num_words, wanted_topics):
     """
 
-    :param wanted_topics:
-    :param num_words:
-    :param filename:
-    :param beta_list:
-    :param iterations:
-    :param docs:
-    :param vocab:
-    :param num_topics:
-    :param alpha:
+    :param wanted_topics: number of topics to display
+    :param num_words: number of representative words to display
+    :param filename: name of output file
+    :param beta_list: list of beta values to experiment with
+    :param iterations: number of iterations to run Gibbs sampling
+    :param docs: pre-processed corpus in form of list of lists of int-represented word tokens
+    :param vocab: a Vocabulary instance of the corresponding corpus; see preprocess.py for details of this class
+    :param num_topics: number of initial number of topics; K variable in the Ying and Wang paper
+    :param alpha: alpha value
     :return: tuple of 3 lists: list of lists of num_cluisters per iteration, list of lists of predicted labels,
     list of lists predicted_most_frequent_words_by_topic
     """
@@ -54,10 +54,6 @@ def experiment_with_beta(beta_list, iterations, docs, vocab, num_topics, alpha, 
         predicted_most_freq_words_by_topic_lists.append(most_freq_words_by_topic)
 
     return num_clusters_by_beta, topic_labels_by_beta, predicted_most_freq_words_by_topic_lists
-
-
-def eval_performance():
-    pass
 
 
 def main():

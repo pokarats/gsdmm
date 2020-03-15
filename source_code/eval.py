@@ -79,16 +79,7 @@ def plot_results(x_values, *args, x_label, y_label, title, file_directory, label
 
 
 def main():
-    # TODO: number of clusters per iteration for varying betas
-    # TODO: NMI, C and H for varying betas
-    # no need to vary alpha as in the paper it doesn't change things as much
-    # run NMI, C, and H for varying betas on: true labels against predicted and between runs
-    # plot number of clusters/iteration
-    # plot NMI/C/H/ for different betas
-    # plot number of clusters for different betas
-    # table in paper: average NMI, H, C and standard dev across different betas and num clusters for short
-    # and long corpus;
-
+    # can ignore sections below as they're there for simply for testing
     predicted1 = read_pickle('../pickled/predicted_labels1.pickle')
     predicted2 = read_pickle('../pickled/predicted_labels2.pickle')
 
