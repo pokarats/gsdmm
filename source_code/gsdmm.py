@@ -46,7 +46,7 @@ class GSDMM:
     def _count_non_zero_docs_topics(self):
         return len(self.num_docs_per_topic.nonzero()[0])
 
-    def gibbs_sampling_topic_reassignment(self, iterations=15):
+    def gibbs_sampling_topic_reassignment(self, iterations=10):
         num_non_zero_topic_clusters = []
         for _ in trange(iterations):
             # keeping track of number of topics with docs in each iteration

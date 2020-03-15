@@ -12,6 +12,26 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 DEFAULTS = PROJECT_DIR / 'source_code' / 'default_config.cfg'
 
 
+def experiment_with_beta(beta_list, iterations, corpus_docs, vocab_size, num_topics, alpha):
+    """
+
+    :param beta_list:
+    :param iterations:
+    :param corpus_docs:
+    :param vocab_size:
+    :param num_topics:
+    :param alpha:
+    :return: tuple of 2 lists: list of lists of num_cluisters per iteration, list of lists of predicted labels
+    """
+    num_clusters_by_beta = []  # list of lists of num_clusters per iteration
+    topic_labels_by_beta = []  # list of lists of predicted labels from each run
+    for beta in beta_list:
+        model = gsdmm.GSDMM(corpus_docs, vocab_size, num_topics, alpha, beta)
+        num_clusters_by_beta.append(model.gibbs_sampling_topic_reassignment(iterations))
+        topic_labels_by_beta.append(model.predict_doc_topic_labels())
+    return num_clusters_by_beta, topic_labels_by_beta
+
+
 def main():
 
     # set up default configurations from config file and command line arguments for overrides
@@ -106,7 +126,8 @@ def main():
     true_label_filename = PROJECT_DIR / fin_data_dir / fin_true_labels
     predicted_label_pickles = PROJECT_DIR / fin_pickle_dir / 'predicted'
     true_pickles = PROJECT_DIR / fin_pickle_dir / 'true'
-    output_filename = PROJECT_DIR / fin_output_dir / 'gsdmm_clusters_and_representative_words.out'
+    output_dir = PROJECT_DIR / fin_output_dir
+    output_filename = output_dir / 'gsdmm_clusters_and_representative_words.out'
 
     logger.info(f'loading and preprocessing corpus files for short and long texts from'
                 f'{short_corpus_filename} and {long_corpus_filename}')
@@ -132,9 +153,25 @@ def main():
                                                                                fin_num_words)
         gsdmm.make_pickle(to_pickle_filename, true_most_frequent_words_by_topic)
 
+    # running gsdmm on 3 different beta values
+    logger.info(f'experimenting with betas: {fin_beta}\n'
+                f'each run is for {fin_iterations} iterations'
+                f'running model on short text corpus\n')
+    num_clusters_by_beta, predicted_labels_by_beta = experiment_with_beta(fin_beta, fin_iterations, short_text_docs,
+                                                                          short_text_vocab.size(), fin_k, fin_alpha)
 
+    # plotting progression of number of non-zero clusters with each iteration
+    logger.info(f'plotting number of clusters per iteration with changing betas')
+    plot_group_label = [f'beta = {str(beta)}' for beta in fin_beta]
+    eval.plot_results([i for i in range(1, 11)], *num_clusters_by_beta, x_label='Iterations',
+                      y_label='Number of Non-Zero Clusters', title='cluster_per_iteration_at_different_beta',
+                      file_directory=output_dir, labels=plot_group_label)
 
-
+    # evaluate model performance in terms of NMI, Homogeneity and Completeness
+    nmi_list, h_list, c_list = eval.model_performance(true_labels, predicted_labels_by_beta)
+    logger.info(f'plotting eval metrics: NMI, Homogeneity, Completeness with changing betas')
+    eval.plot_results(fin_beta, nmi_list, h_list, c_list, x_label='Beta Values', y_label='Performance',
+                      title='performance_at_different_beta', file_directory=output_dir, labels=plot_group_label)
 
 
 if __name__ == '__main__':
