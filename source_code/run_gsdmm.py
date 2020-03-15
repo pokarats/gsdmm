@@ -27,6 +27,7 @@ def experiment_with_beta(beta_list, iterations, docs, vocab, num_topics, alpha, 
     :return: tuple of 3 lists: list of lists of num_cluisters per iteration, list of lists of predicted labels,
     list of lists predicted_most_frequent_words_by_topic
     """
+
     num_clusters_by_beta = []  # list of lists of num_clusters per iteration
     topic_labels_by_beta = []  # list of lists of predicted labels from each run
     predicted_most_freq_words_by_topic_lists = []
@@ -40,7 +41,7 @@ def experiment_with_beta(beta_list, iterations, docs, vocab, num_topics, alpha, 
         # number of topics == the number of non-zero clusters after the last iteration
         end_num_topics = num_clusters_per_iter[-1]
         if end_num_topics > wanted_topics:
-            wanted_topics = end_num_topics    
+            wanted_topics = end_num_topics
         most_freq_words_by_topic = gsdmm.predict_most_populated_clusters(model, vocab, filename, num_words,
                                                                          wanted_topics)
         predicted_most_freq_words_by_topic_lists.append(most_freq_words_by_topic)

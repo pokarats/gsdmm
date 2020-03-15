@@ -9,6 +9,10 @@ import pickle
 
 class GSDMM:
     def __init__(self, documents, vocab_size, num_topics=50, alpha=0.1, beta=0.1):
+        logging.getLogger(__name__).info(f'Initializing an GSDMM instance with parameters:\n'
+                                         f'K: {num_topics}'
+                                         f'alpha: {alpha}'
+                                         f'beta: {beta}')
         self.documents = documents
         self.num_topics = num_topics
         self.vocab_size = vocab_size
@@ -146,6 +150,7 @@ class GSDMM:
         return normalized_prob.astype(np.float64)
 
     def predict_doc_topic_labels(self):
+        logging.getLogger(__name__).info(f'generating list of predicted labels for docs')
         predicted_labels = []
         for doc_index in range(self.num_docs):
             topic_label = self.topic_label_by_doc[doc_index]
@@ -164,6 +169,8 @@ def make_pickle(filename, obj_to_pickle):
 
 
 def predict_most_populated_clusters(gsdmm, vocab, filename, num_wanted_words=5, num_wanted_topics=20):
+    logging.getLogger(__name__).info(f'Writing output file with predicted clusters, saving to: {filename}\n'
+                                     f'Number of non-zero doc topics: {num_wanted_topics}')
     highest_num_docs = np.sort(gsdmm.num_docs_per_topic)[::-1][:num_wanted_topics]
     most_docs_topics = np.argsort(gsdmm.num_docs_per_topic)[::-1][:num_wanted_topics]
     with open(filename, 'a') as w_file:
