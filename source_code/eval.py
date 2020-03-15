@@ -68,7 +68,11 @@ def plot_results(x_values, *args, x_label, y_label, title, file_directory, label
     filename = f'{str(file_directory)}/{title}.png'
     logging.getLogger(__name__).info(f'saving {title} plot to {filename}')
     plt.savefig(filename, bbox_inches='tight')
-    plt.show()
+    if 'supoka' in str(file_directory):
+        # do not show if running on remote server
+        pass
+    else:
+        plt.show()
     plt.close()
 
     return None
