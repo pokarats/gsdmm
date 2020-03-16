@@ -64,3 +64,22 @@ Number of non-zero doc topics: 13
 03/16/2020 09:35:36 PM gsdmm - INFO: dumping pickle file to: /home/CE/supoka/CompLing/gsdmm/pickled/predicted_3_labels_by_beta.pickle
 03/16/2020 09:35:37 PM gsdmm - INFO: dumping pickle file to: /home/CE/supoka/CompLing/gsdmm/pickled/predicted_3_freq_words_by_beta.pickle
 03/16/2020 09:35:37 PM __main__ - INFO: ****FINISH RUNNING GSDMM EXPERIMENTS****
+03/16/2020 09:46:33 PM __main__ - INFO: ***START GSDMM***
+03/16/2020 09:46:33 PM __main__ - INFO: loading and preprocessing corpus file from /Users/noonscape/Documents/CompLingSaar/FinalProject/GSDMM/data/title_StackOverflow.txt
+03/16/2020 09:46:37 PM __main__ - INFO: loading true label file from /Users/noonscape/Documents/CompLingSaar/FinalProject/GSDMM/data/label_StackOverflow.txt
+03/16/2020 09:46:37 PM eval - INFO: loading pickle file: /Users/noonscape/Documents/CompLingSaar/FinalProject/GSDMM/pickled/true_3_most_freq_words_by_topic.pickle
+03/16/2020 09:46:37 PM __main__ - INFO: experimenting with betas: [0.02, 0.05, 0.1, 0.2, 0.3]
+each run is for 10 iterations
+running model on short text corpus
+
+03/16/2020 09:46:37 PM eval - INFO: loading pickle file: /Users/noonscape/Documents/CompLingSaar/FinalProject/GSDMM/pickled/predicted_3_num_clusters_by_it_per_beta_list.pickle
+03/16/2020 09:46:37 PM eval - INFO: loading pickle file: /Users/noonscape/Documents/CompLingSaar/FinalProject/GSDMM/pickled/predicted_3_labels_by_beta.pickle
+03/16/2020 09:46:37 PM eval - INFO: loading pickle file: /Users/noonscape/Documents/CompLingSaar/FinalProject/GSDMM/pickled/predicted_3_freq_words_by_beta.pickle
+03/16/2020 09:46:37 PM __main__ - INFO: plotting number of clusters per iteration with changing betas in short text corpus
+03/16/2020 09:46:37 PM eval - INFO: plotting short_text_clusters_per_iteration_at_different_beta
+03/16/2020 09:46:37 PM eval - INFO: saving short_text_clusters_per_iteration_at_different_beta plot to /Users/noonscape/Documents/CompLingSaar/FinalProject/GSDMM/output/short_text_clusters_per_iteration_at_different_beta.png
+03/16/2020 09:46:50 PM eval - INFO: calculating NMI, Completeness, and Homogeneity for different betas
+03/16/2020 09:46:50 PM __main__ - INFO: plotting eval metrics short corpus: NMI, Homogeneity, Completeness with changing betas
+03/16/2020 09:46:50 PM eval - INFO: plotting performance_at_different_beta
+03/16/2020 09:46:51 PM eval - INFO: saving performance_at_different_beta plot to /Users/noonscape/Documents/CompLingSaar/FinalProject/GSDMM/output/performance_at_different_beta.png
+03/16/2020 09:46:58 PM __main__ - INFO: ****FINISH RUNNING GSDMM EXPERIMENTS****
