@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
-# Preprocessing steps follow what is described in the Yin and Wang paper and is adpated from the code from
-# (c) 2010-2011 Nakatni Shuyo / Cybozu Labs Inc. / Cybozu Labs
-# This code is available under the MIT License.
+# Preprocessing steps follow what is described in the Yin and Wang paper (2014) and is adapted from the code from
+# (c) 2010-2011 Nakatni Shuyo / Cybozu Labs Inc. / Cybozu Labs available under the MIT License.
 
 
 import re
