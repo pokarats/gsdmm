@@ -1,14 +1,17 @@
-# Gibbs Samping Dirichlet Multinomial Model (GSDMM)
-Computational Linguisitics Final Project GSDMM Implementation as outlined in Yin and Wang (2014)
+# Gibbs Samping Dirichlet Multinomial Mixture Model (GSDMM) in Short-Text Clustering
+
+Computational Linguistics Final Project, Winter Semester 2019, University of Saarland  
+GSDMM Implementation as described in:  
+_**Yin, J. and Wang., J. A dirichlet multinomial mixturemodel-based approach for short text clustering. In SIGKDD,2014**_  
+Experimenting with different beta parameters on the Stack Overflow Titles dataset made available by Kaggle.com from the paper by:  
+_**Xu, J., et al., 2015. Short Text Clustering via Convolutional Neural Networks,
+NAACL.**_  
 
 ## Project File Structure
 
 - GSDMM
     - README.md
-    - data: _all corpus and label files are here_  
-    This dataset made available by Kaggle.com is from the paper by  
-    _Xu, J., et al., 2015. Short Text Clustering via Convolutional Neural Networks,
-NAACL._
+    - data: _all corpus and label files are here_   
         - title_StackOverflow.txt
         - label_StackOverflow.txt
     - logs: _logs of run_gsdmm.py execution_
@@ -28,7 +31,7 @@ NAACL._
         - eval.py _this module calculates NMI, Homogeneity, and Completeness and plot graphs_
         - gsdmm.py _this module does the GSDMM algorithm_
         - preprocess.py _this module tokenizes and pre process the corpus file_
-        - run_gsdmm.py _this is the main program_
+        - run_gsdmm.py _**this is the main program that runs the experiment**_
 
 ## Requirements
 
