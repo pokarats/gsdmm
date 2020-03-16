@@ -1,0 +1,66 @@
+03/16/2020 04:57:29 PM __main__ - INFO: ***START GSDMM***
+03/16/2020 04:57:29 PM __main__ - INFO: loading and preprocessing corpus file from /home/CE/supoka/CompLing/gsdmm/data/title_StackOverflow.txt
+03/16/2020 04:57:35 PM __main__ - INFO: loading true label file from /home/CE/supoka/CompLing/gsdmm/data/label_StackOverflow.txt
+03/16/2020 04:57:35 PM eval - INFO: loading pickle file: /home/CE/supoka/CompLing/gsdmm/pickled/true_3_most_freq_words_by_topic.pickle
+03/16/2020 04:57:35 PM __main__ - INFO: No pickle found
+03/16/2020 04:57:35 PM gsdmm - INFO: Starting output file with true clusters, saving to: /home/CE/supoka/CompLing/gsdmm/output/gsdmm_clusters_and_representative_words_3.out
+03/16/2020 04:57:36 PM gsdmm - INFO: dumping pickle file to: /home/CE/supoka/CompLing/gsdmm/pickled/true_3_most_freq_words_by_topic.pickle
+03/16/2020 04:57:36 PM __main__ - INFO: experimenting with betas: [0.02, 0.05, 0.1, 0.2, 0.3]
+each run is for 10 iterations
+running model on short text corpus
+
+03/16/2020 04:57:36 PM eval - INFO: loading pickle file: /home/CE/supoka/CompLing/gsdmm/pickled/predicted_3_num_clusters_by_it_per_beta_list.pickle
+03/16/2020 04:57:36 PM gsdmm - INFO: Initializing an GSDMM instance with parameters:
+K: 100
+alpha: 0.1
+beta: 0.02
+03/16/2020 05:53:36 PM gsdmm - INFO: generating list of predicted labels for docs
+03/16/2020 05:53:36 PM __main__ - INFO: Number of specified clusters: 20
+03/16/2020 05:53:36 PM __main__ - INFO: Number of topics at last iteration: 100
+03/16/2020 05:53:36 PM __main__ - INFO: Number of wanted topics: 100
+03/16/2020 05:53:36 PM gsdmm - INFO: Writing output file with predicted clusters, saving to: /home/CE/supoka/CompLing/gsdmm/output/gsdmm_clusters_and_representative_words_3.out
+Number of non-zero doc topics: 100
+03/16/2020 05:53:36 PM gsdmm - INFO: Initializing an GSDMM instance with parameters:
+K: 100
+alpha: 0.1
+beta: 0.05
+03/16/2020 06:49:33 PM gsdmm - INFO: generating list of predicted labels for docs
+03/16/2020 06:49:33 PM __main__ - INFO: Number of specified clusters: 20
+03/16/2020 06:49:33 PM __main__ - INFO: Number of topics at last iteration: 64
+03/16/2020 06:49:33 PM __main__ - INFO: Number of wanted topics: 64
+03/16/2020 06:49:33 PM gsdmm - INFO: Writing output file with predicted clusters, saving to: /home/CE/supoka/CompLing/gsdmm/output/gsdmm_clusters_and_representative_words_3.out
+Number of non-zero doc topics: 64
+03/16/2020 06:49:33 PM gsdmm - INFO: Initializing an GSDMM instance with parameters:
+K: 100
+alpha: 0.1
+beta: 0.1
+03/16/2020 07:44:55 PM gsdmm - INFO: generating list of predicted labels for docs
+03/16/2020 07:44:55 PM __main__ - INFO: Number of specified clusters: 20
+03/16/2020 07:44:55 PM __main__ - INFO: Number of topics at last iteration: 26
+03/16/2020 07:44:55 PM __main__ - INFO: Number of wanted topics: 26
+03/16/2020 07:44:55 PM gsdmm - INFO: Writing output file with predicted clusters, saving to: /home/CE/supoka/CompLing/gsdmm/output/gsdmm_clusters_and_representative_words_3.out
+Number of non-zero doc topics: 26
+03/16/2020 07:44:55 PM gsdmm - INFO: Initializing an GSDMM instance with parameters:
+K: 100
+alpha: 0.1
+beta: 0.2
+03/16/2020 08:40:10 PM gsdmm - INFO: generating list of predicted labels for docs
+03/16/2020 08:40:10 PM __main__ - INFO: Number of specified clusters: 20
+03/16/2020 08:40:10 PM __main__ - INFO: Number of topics at last iteration: 20
+03/16/2020 08:40:10 PM __main__ - INFO: Number of wanted topics: 20
+03/16/2020 08:40:10 PM gsdmm - INFO: Writing output file with predicted clusters, saving to: /home/CE/supoka/CompLing/gsdmm/output/gsdmm_clusters_and_representative_words_3.out
+Number of non-zero doc topics: 20
+03/16/2020 08:40:10 PM gsdmm - INFO: Initializing an GSDMM instance with parameters:
+K: 100
+alpha: 0.1
+beta: 0.3
+03/16/2020 09:35:36 PM gsdmm - INFO: generating list of predicted labels for docs
+03/16/2020 09:35:36 PM __main__ - INFO: Number of specified clusters: 20
+03/16/2020 09:35:36 PM __main__ - INFO: Number of topics at last iteration: 13
+03/16/2020 09:35:36 PM __main__ - INFO: Number of wanted topics: 13
+03/16/2020 09:35:36 PM gsdmm - INFO: Writing output file with predicted clusters, saving to: /home/CE/supoka/CompLing/gsdmm/output/gsdmm_clusters_and_representative_words_3.out
+Number of non-zero doc topics: 13
+03/16/2020 09:35:36 PM gsdmm - INFO: dumping pickle file to: /home/CE/supoka/CompLing/gsdmm/pickled/predicted_3_num_clusters_by_it_per_beta_list.pickle
+03/16/2020 09:35:36 PM gsdmm - INFO: dumping pickle file to: /home/CE/supoka/CompLing/gsdmm/pickled/predicted_3_labels_by_beta.pickle
+03/16/2020 09:35:37 PM gsdmm - INFO: dumping pickle file to: /home/CE/supoka/CompLing/gsdmm/pickled/predicted_3_freq_words_by_beta.pickle
+03/16/2020 09:35:37 PM __main__ - INFO: ****FINISH RUNNING GSDMM EXPERIMENTS****
