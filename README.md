@@ -1,10 +1,10 @@
 # Gibbs Samping Dirichlet Multinomial Model (GSDMM)
 Computational Linguisitics Final Project GSDMM Implementation as outlined in Yin and Wang (2014)
 
-Project File Structure:
+## Project File Structure
 
 - GSDMM
-    README.md
+    - README.md
     - data: _all corpus and label files are here_
         - title_StackOverflow.txt
         - label_StackOverflow.txt
@@ -20,24 +20,25 @@ Project File Structure:
         - predicted_{run_id}_labels_by_beta.pickle
         - predicted_{run_id}_num_clusters_by_it_per_beta_list.pickle
         - true_most_frequent_words_by_topic.pickle
-    - source_code: _config file for default parameters and all source code files_
+    - source_code: _config file for default parameters and all source code files_  
+    **execute run_gsdmm.py from this directory**
         - default_config.cfg
         - eval.py
         - gsdmm.py
         - preprocess.py
         - run_gsdmm.py
 
-Requirements:
+## Requirements
 
 Python 3.7
 
-numpy
-sklearn
-matplotlib
-nltk
+numpy  
+sklearn  
+matplotlib  
+nltk  
 tqdm
 
-Instructions:
+## Instructions
 
 - cd to the source_code directory to execute the program
 - **python run_gsdmm.py -h** will display all the command line options
