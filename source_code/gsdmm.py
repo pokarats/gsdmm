@@ -230,7 +230,7 @@ def true_most_populated_clusters(true_clusters, documents, vocab, filename, num_
 
 
 def main():
-    # please ignore code blocks below; they're there for testing
+    # please ignore code blocks below; they're there just for testing
     toy_filename = '../data/toy.txt'
     sofl_filename = '../data/title_StackOverflow.txt'
     toy_corpus = preprocess.load_corpus(toy_filename)

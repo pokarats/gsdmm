@@ -66,20 +66,19 @@ def main():
     parser.add_argument('--data', type=str, help='name of data directory', default=None)
     parser.add_argument('--output', type=str, help='name of directory to save output files', default=None)
     parser.add_argument('--logging', type=str, help='name of log files directory', default=None)
-    parser.add_argument('--pickle', type=str, help='name of pickled files directory', default=None)
+    parser.add_argument('--pickle', type=str, help='name of pickle files directory', default=None)
     parser.add_argument('--short_corpus', type=str, help='short text corpus filename', default=None)
-    parser.add_argument('--long_corpus', type=str, help='long text corpus filename', default=None)
     parser.add_argument('--labels', type=str, help='true label filename', default=None)
 
     # overridable options for GSDMM parameters
     parser.add_argument('--alpha', type=float, help='alpha value for Dirichlet', default=None)
-    parser.add_argument('--beta', type=float, help='beta value for Dirichlet', default=None)
+    parser.add_argument('--beta', type=str, help='beta value(s) for Dirichlet; if multiple values, input as csv string',
+                        default=None)
     parser.add_argument('--k', type=int, help='upper bound of expected number of clusters', default=None)
-    parser.add_argument('--iterations', type=int, help='number of iterations to reapeat Gibbs sampling', default=None)
+    parser.add_argument('--iterations', type=int, help='number of iterations for Gibbs Sampling', default=None)
     parser.add_argument('--run', type=int, help='run id for log tracking', default=None)
     parser.add_argument('--clusters', type=int, help='number of clusters to show in output', default=None)
     parser.add_argument('--num_words', type=int, help='number of words in clusters to show in output', default=None)
-    parser.add_argument('--long', type=bool, help='Whether or not to run GSDMM on the long text corpus', default=False)
 
     # parse command line overrides
     pargs = parser.parse_args()
@@ -89,12 +88,10 @@ def main():
     pargs_log_dir = pargs.logging
     pargs_pickle_dir = pargs.pickle
     pargs_corpus_short = pargs.short_corpus
-    pargs_corpus_long = pargs.long_corpus
     pargs_true_labels = pargs.labels
-    pargs_long = pargs.long
 
     pargs_alpha = pargs.alpha
-    pargs_beta = pargs.beta
+    pargs_beta = [float(beta) for beta in pargs.beta.split(',')]
     pargs_k = pargs.k
     pargs_iterations = pargs.iterations
     pargs_run = pargs.run
@@ -110,7 +107,6 @@ def main():
     conf_log_dir = config['SETTINGS']['LOG_DIR']
     conf_pickle_dir = config['SETTINGS']['PICKLE_DIR']
     conf_corpus_short = config['SETTINGS']['CORPUS_FILE_SHORT']
-    conf_corpus_long = config['SETTINGS']['CORPUS_FILE_LONG']
     conf_true_labels = config['SETTINGS']['TRUE_LABELS_FILE']
 
     # default values for GSDMM parameters
@@ -128,7 +124,6 @@ def main():
     fin_log_dir = pargs_log_dir if pargs_log_dir else conf_log_dir
     fin_pickle_dir = pargs_pickle_dir if pargs_pickle_dir else conf_pickle_dir
     fin_corpus_short = pargs_corpus_short if pargs_corpus_short else conf_corpus_short
-    fin_corpus_long = pargs_corpus_long if pargs_corpus_long else conf_corpus_long
     fin_true_labels = pargs_true_labels if pargs_true_labels else conf_true_labels
 
     fin_alpha = pargs_alpha if pargs_alpha else conf_alpha
@@ -142,13 +137,12 @@ def main():
     # setup logging
     log_filename = str(PROJECT_DIR / fin_log_dir / f'run_gsdmm_{fin_run}.log')
     logger = logging.getLogger(__name__)
-    logging.basicConfig(filename=log_filename, filemode='w', format='%(asctime)s %(name)s - %(levelname)s: %(message)s',
+    logging.basicConfig(filename=log_filename, filemode='a', format='%(asctime)s %(name)s - %(levelname)s: %(message)s',
                         datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.INFO)
 
     logger.info('***START GSDMM***')
     # all filenames are pathlib Path not string
     short_corpus_filename = PROJECT_DIR / fin_data_dir / fin_corpus_short
-    long_corpus_filename = PROJECT_DIR / fin_data_dir / fin_corpus_long
     true_label_filename = PROJECT_DIR / fin_data_dir / fin_true_labels
     predicted_pickles = PROJECT_DIR / fin_pickle_dir / 'predicted'
     true_pickles = PROJECT_DIR / fin_pickle_dir / 'true'
@@ -156,23 +150,17 @@ def main():
     output_filename = output_dir / f'gsdmm_clusters_and_representative_words_{fin_run}.out'
 
     # loading files and pre-processing
-    logger.info(f'loading and preprocessing corpus files for short and long texts from'
-                f'{short_corpus_filename} and {long_corpus_filename}')
+    logger.info(f'loading and preprocessing corpus file from {short_corpus_filename}')
     short_text_corpus = preprocess.load_corpus(short_corpus_filename)
-    long_text_corpus = preprocess.load_corpus(long_corpus_filename)
-
     short_text_vocab = preprocess.Vocabulary()
     short_text_docs = [short_text_vocab.doc_to_ids(doc) for doc in short_text_corpus]
-
-    long_text_vocab = preprocess.Vocabulary()
-    long_text_docs = [long_text_vocab.doc_to_ids(doc) for doc in long_text_corpus]
 
     # loading true labels and representative words in true clusters
     logger.info(f'loading true label file from {true_label_filename}')
     true_labels = preprocess.load_labels(true_label_filename)
     true_clusters = preprocess.make_topic_clusters(true_labels)
 
-    true_pickle_filename = f'{str(true_pickles)}_most_freq_words_by_topic.pickle'
+    true_pickle_filename = f'{str(true_pickles)}_{fin_run}_most_freq_words_by_topic.pickle'
     try:
         true_most_frequent_words_by_topic = eval.read_pickle(true_pickle_filename)
     except FileNotFoundError:
@@ -202,50 +190,26 @@ def main():
         gsdmm.make_pickle(predicted_labels_pickle_file, predicted_labels_by_beta)
         gsdmm.make_pickle(predicted_freq_words_pickle_file, most_freq_words_by_beta)
 
-    # plotting progression of number of non-zero clusters with each iteration for short text corpus
-    logger.info(f'plotting number of clusters per iteration with changing betas in short text corpus')
-    plot_group_label = [f'beta = {str(beta)}' for beta in fin_beta]
-    eval.plot_results([i for i in range(1, 11)], *num_clusters_by_beta, x_label='Iterations',
-                      y_label='Number of Non-Zero Clusters', title='short_text_clusters_per_iteration_at_different_beta'
-                      , file_directory=output_dir, labels=plot_group_label)
+    if '/home/CE/' in str(output_dir):
+        # do not plot if running on remote server
+        pass
+    else:
+        # plotting progression of number of non-zero clusters with each iteration for short text corpus
+        logger.info(f'plotting number of clusters per iteration with changing betas in short text corpus')
+        plot_group_label = [f'beta = {str(beta)}' for beta in fin_beta]
+        eval.plot_results([i for i in range(1, fin_iterations + 1)], *num_clusters_by_beta, x_label='Iterations',
+                          y_label='Number of Non-Zero Clusters', title=
+                          'short_text_clusters_per_iteration_at_different_beta', file_directory=output_dir,
+                          labels=plot_group_label)
 
-    # evaluate model performance in terms of NMI, Homogeneity and Completeness for short text corpus
-    nmi_list, h_list, c_list = eval.model_performance(true_labels, predicted_labels_by_beta)
-    logger.info(f'plotting eval metrics short corpus: NMI, Homogeneity, Completeness with changing betas')
-    eval.plot_results(fin_beta, nmi_list, h_list, c_list, x_label='Beta Values', y_label='Performance',
+        # evaluate model performance in terms of NMI, Homogeneity and Completeness for short text corpus
+        nmi_list, h_list, c_list = eval.model_performance(true_labels, predicted_labels_by_beta)
+        logger.info(f'plotting eval metrics short corpus: NMI, Homogeneity, Completeness with changing betas')
+        eval.plot_results(fin_beta, nmi_list, h_list, c_list, x_label='Beta Values', y_label='Performance',
                           title='performance_at_different_beta', file_directory=output_dir, labels=
                           ['NMI', 'Homogeneity', 'Completeness'])
 
-    if pargs_long:
-        # running gsdmm on different beta values or load from pickled
-        logger.info(f'experimenting with betas: {fin_beta}\n'
-                    f'each run is for {fin_iterations} iterations\n'
-                    f'running model on long text corpus\n')
-        predicted_clusters_pickle_file_long = f'{str(predicted_pickles)}_{fin_run}_long_num_clusters_by_it_per_beta_list.pickle'
-        predicted_labels_pickle_file_long = f'{str(predicted_pickles)}_{fin_run}__long_labels_by_beta.pickle'
-        predicted_freq_words_pickle_file_long = f'{str(predicted_pickles)}_{fin_run}_long_freq_words_by_beta.pickle'
-        try:
-            num_clusters_by_beta_long = eval.read_pickle(predicted_clusters_pickle_file_long)
-            predicted_labels_by_beta_long = eval.read_pickle(predicted_labels_pickle_file_long)
-            most_freq_words_by_beta_long = eval.read_pickle(predicted_freq_words_pickle_file_long)
-        except FileNotFoundError:
-            output_filename_long = f'{str(output_filename)}.long'
-            # running gsdmm on different beta values
-            num_clusters_by_beta_long, predicted_labels_by_beta_long, most_freq_words_by_beta_long = \
-                experiment_with_beta(fin_beta, fin_iterations, long_text_docs, long_text_vocab, fin_k, fin_alpha,
-                                     output_filename_long, fin_num_words, fin_clusters)
-            gsdmm.make_pickle(predicted_clusters_pickle_file_long, num_clusters_by_beta_long)
-            gsdmm.make_pickle(predicted_labels_pickle_file_long, predicted_labels_by_beta_long)
-            gsdmm.make_pickle(predicted_freq_words_pickle_file_long, most_freq_words_by_beta_long)
-
-        # plotting number of clusters per iteration at changing betas for long text corpus
-        logger.info(f'plotting number of clusters per iteration in long text corpus')
-        eval.plot_results([i for i in range(1, fin_iterations + 1)], *num_clusters_by_beta_long, x_label='Iterations',
-                          y_label='Number of Non-Zero Clusters',
-                          title='long_text_clusters_per_iteration_at_different_beta',
-                          file_directory=output_dir, labels=plot_group_label)
-
-    logger.info('****FINISH RUNNING GSDMM****')
+    logger.info('****FINISH RUNNING GSDMM EXPERIMENTS****')
 
 
 if __name__ == '__main__':
