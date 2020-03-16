@@ -91,7 +91,10 @@ def main():
     pargs_true_labels = pargs.labels
 
     pargs_alpha = pargs.alpha
-    pargs_beta = [float(beta) for beta in pargs.beta.split(',')]
+    if pargs.beta is not None:
+        pargs_beta = [float(beta) for beta in pargs.beta.split(',')]
+    else:
+        pargs_beta = pargs.beta
     pargs_k = pargs.k
     pargs_iterations = pargs.iterations
     pargs_run = pargs.run
