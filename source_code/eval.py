@@ -76,28 +76,6 @@ def plot_results(x_values, *args, x_label, y_label, title, file_directory, label
 
 def main():
     # can ignore sections below as they're there for simply for testing
-    predicted1 = read_pickle('../pickled/predicted_labels1.pickle')
-    predicted2 = read_pickle('../pickled/predicted_labels2.pickle')
-
-
-    # true labels and clusters
-    labels = preprocess.load_labels('../data/label_StackOverflow.txt')
-
-    assert len(labels) == len(predicted1)
-    assert len(labels) == len(predicted2)
-    assert len(predicted1) == len(predicted2)
-    nmi_score = nmi(predicted1, predicted1)
-    ami_score = ami(predicted2, predicted1)
-    ari_score = ari(predicted2, predicted1)
-    h_score, c_score, v_measure = hcv(predicted2, predicted1)
-
-    print(f'Evaluation metrics:\n'
-          f'Normalized Mutual Info: {nmi_score}\n'
-          f'Adjusted Mutual Info: {ami_score}\n'
-          f'Adjusted Rand Score: {ari_score}\n'
-          f'Homogeneity: {h_score}\n'
-          f'Completeness: {c_score}\n'
-          f'V-measure: {v_measure}\n')
 
     test_lists = [[1,2,3], [3,4,5], [4,5,6]]
     plot_results([i for i in range(1, 4)], *test_lists, x_label='iterations', y_label='number of non-zero clusters',

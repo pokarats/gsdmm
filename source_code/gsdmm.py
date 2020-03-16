@@ -225,6 +225,7 @@ def true_most_populated_clusters(true_clusters, documents, vocab, filename, num_
                                                                                               highest_word_freq)]
             most_frequent_words_by_topic[topic_index] = most_frequent_words
             print(f'True topic label: {topic_index}\tMost frequent words: {most_frequent_words}', file=w_file)
+        print(f'***end of true labels***\n', file=w_file)
 
     return most_frequent_words_by_topic
 
@@ -251,33 +252,6 @@ def main():
     labels = preprocess.load_labels('../data/label_StackOverflow.txt')
     true_clusters = preprocess.make_topic_clusters(labels)
     true_most_frequent_words_by_topic = true_most_populated_clusters(true_clusters, stack_overflow_docs, vocab)
-
-    #full stack_overflow run
-    start_timer = timeit.default_timer()
-    stack_gsdmm = GSDMM(stack_overflow_docs, vocab.size())
-    num_stack_topics_by_iter = stack_gsdmm.gibbs_sampling_topic_reassignment()
-    stack_predicted_labels = stack_gsdmm.predict_doc_topic_labels()
-    print(f'number of non-0 topics by iteration: {num_stack_topics_by_iter}')
-    elapsed_time = timeit.default_timer() - start_timer
-    print(f'time to run GSDMM 1: {elapsed_time}')
-
-    # pickle predicted labels
-    pickled_predicted_labels = '../pickled/predicted_labels1.pickle'
-    with open(pickled_predicted_labels, 'wb') as w_file:
-        pickle.dump(stack_predicted_labels, w_file)
-
-    with open(pickled_predicted_labels, 'rb') as saved_pickle:
-        loaded_predicted_labels = pickle.load(saved_pickle)
-
-    assert stack_predicted_labels == loaded_predicted_labels
-    predicted_most_freq_words_by_topic = predict_most_populated_clusters(stack_gsdmm, vocab)
-
-    #full_stack run2
-    stack2_gsdmm = GSDMM(stack_overflow_docs, vocab.size())
-    num2_stack_topics_by_iter = stack2_gsdmm.gibbs_sampling_topic_reassignment()
-    stack2_predicted_labels = stack2_gsdmm.predict_doc_topic_labels()
-    print(f'number of non-0 topics by iteration run 2: {num2_stack_topics_by_iter}')
-    make_pickle('../pickled/predicted_labels2.pickle', stack2_predicted_labels)
 
 
 if __name__ == '__main__':

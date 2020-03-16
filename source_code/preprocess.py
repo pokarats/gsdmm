@@ -207,11 +207,9 @@ class Vocabulary:
 
 
 def main():
-    # code below is for testing that this module works as expected
+    # please ignore code below; it's only for testing that this module works as expected
     toy = load_corpus('../data/toy.txt')
-    toy_long = load_corpus('../data/toy_long.txt')
     print(toy)
-    print(toy_long)
 
     # process corpora
     vocab = Vocabulary()
@@ -221,13 +219,6 @@ def main():
 
     toy_docs = vocab.cut_low_freq(toy_docs)
     print(toy_docs)
-
-    vocab_long = Vocabulary()
-    toy_long_docs = [vocab_long.doc_to_ids(doc) for doc in toy_long]
-    print(toy_long_docs)
-
-    toy_long_docs = vocab_long.cut_low_freq(toy_long_docs)
-    print(toy_long_docs)
 
     labels = load_labels('../data/label_StackOverflow.txt')
     print(labels)
