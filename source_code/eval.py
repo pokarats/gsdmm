@@ -28,9 +28,9 @@ def model_performance(true_labels, predicted_label_lists):
     for each_list in predicted_label_lists:
         assert len(true_labels) == len(each_list)
         nmi_scores.append(nmi(true_labels, each_list))
-        c, h, _ = hcv(true_labels, each_list)
-        c_scores.append(c)
+        h, c, _ = hcv(true_labels, each_list)
         h_scores.append(h)
+        c_scores.append(c)
     return nmi_scores, h_scores, c_scores
 
 
