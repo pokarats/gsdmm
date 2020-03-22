@@ -11,6 +11,7 @@ NAACL.**_
 
 - GSDMM
     - README.md
+    - gsdmm_noonPokaratsiriGoldstein.pdf _project report_
     - data: _all corpus and label files are here_   
         - title_StackOverflow.txt
         - label_StackOverflow.txt
